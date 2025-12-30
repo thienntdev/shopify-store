@@ -1,4 +1,5 @@
 /** @format */
+"use client";
 
 import { useState } from "react";
 
@@ -12,7 +13,7 @@ export default function PromotionBanner() {
         aria-label="Close promotion banner"
       >
         <svg
-          className="w-5 h- 5"
+          className="w-5 h-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

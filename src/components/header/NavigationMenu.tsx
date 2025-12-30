@@ -1,4 +1,6 @@
 /** @format */
+"use client";
+
 import { useState } from "react";
 import Link from "next/link";
 
@@ -15,11 +17,11 @@ export default function NavigationMenu() {
     { name: "Drinkware", href: "/drinkware", hasDropdown: true },
     { name: "Reviews", href: "/reviews" },
   ];
+
   return (
     <>
-      {/* Navigation Menu */}
       <nav className="mt-4 border-t border-gray-200">
-        <ul className="flex items-center gap-6 py-3">
+        <ul className="flex items-center justify-center gap-6 py-3">
           {navigationItems.map((item) => (
             <li
               key={item.name}
@@ -53,7 +55,7 @@ export default function NavigationMenu() {
 
               {/* Dropdown Menu - Example for Decorations */}
               {item.hasDropdown && isMenuOpen === item.name && (
-                <div className="absolute top-full left-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg p-6 grid grid-cols-3 gap-4">
+                <div className="absolute top-1/2 left-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg p-6 grid grid-cols-3 gap-4">
                   <div>
                     <h3 className="font-semibold mb-2 text-gray-900">
                       Ornament

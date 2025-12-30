@@ -1,8 +1,6 @@
 /** @format */
-
 "use client";
 
-import Link from "next/link";
 import PromotionBanner from "./PromotionBanner";
 import SearchBar from "./SearchBar";
 import NavigationMenu from "./NavigationMenu";
@@ -19,11 +17,8 @@ export default function Header() {
       {/* Main Header */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
-          {/* Logo */}
           <Logo />
-
           <SearchBar />
-
           {/* Right Side Actions */}
           <div className="flex items-center gap-4">
             <TrackOrder />
