@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
         hostname: "**.shopifycdn.com",
       },
     ],
+    // Tăng timeout cho image optimization
+    minimumCacheTTL: 1,
+    // Cho phép unoptimized images để tránh timeout
+    unoptimized: false,
   },
 };
 

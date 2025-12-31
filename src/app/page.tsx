@@ -1,64 +1,82 @@
 /** @format */
 
 import Link from "next/link";
-import ProductCard from "@/components/ProductCard";
+import Image from "next/image";
+import ProductCard from "@/components/ui/ProductCard";
+import CategoryIcon from "@/components/ui/CategoryIcon";
+import CollectionButton from "@/components/ui/CollectionButton";
+import FilterableProductSection from "@/components/FilterableProductSection";
+import HeroBanner from "@/components/HeroBanner";
+import ShopByGrid, { ShopByItem } from "@/components/ShopByGrid";
 
 // Mock product data - replace with real data from Shopify
-const trendingProducts = [
+const trendingNowProducts = [
   {
     id: "1",
-    title: "Poster - My Favorite Place In All The World Is Next To You",
-    price: 29.99,
-    originalPrice: 49.99,
-    rating: 5.0,
-    reviewCount: 75,
-    image:
-      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Product+Image",
-    discount: 42,
+    title: "Hope You Like Dogs - Personalized Wood Sign",
+    price: 29.95,
+    rating: 4.8,
+    reviewCount: 125,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Wood+Sign",
   },
   {
     id: "2",
-    title: "Car Ornament - Together Forever",
-    price: 19.99,
-    originalPrice: 29.99,
-    rating: 5.0,
-    reviewCount: 43,
-    image:
-      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Product+Image",
-    discount: 33,
+    title: "Bestie - Vintage Version - Personalized Photo Comfort Tee",
+    price: 29.95,
+    rating: 4.9,
+    reviewCount: 89,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Bestie+Tee",
   },
   {
     id: "3",
-    title: "Mugs - Personalized Quote",
-    price: 24.99,
-    originalPrice: 44.99,
+    title: "It Takes A Long Time To Grow An Old Friend, Bestie Toile De Jouy",
+    price: 29.95,
     rating: 5.0,
-    reviewCount: 700,
+    reviewCount: 156,
     image:
-      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Product+Image",
-    discount: 44,
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Trinket+Dish",
   },
   {
     id: "4",
-    title: "Mugs - Couple of the Year",
-    price: 24.99,
-    originalPrice: 44.99,
-    rating: 5.0,
-    reviewCount: 700,
-    image:
-      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Product+Image",
-    discount: 44,
+    title: "Funny Gifts For Smut Reading Lovers - Custom Acrylic Bookmark",
+    price: 22.95,
+    rating: 4.7,
+    reviewCount: 203,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Bookmark",
   },
   {
     id: "5",
-    title: "Suncatcher Ornament",
-    price: 24.99,
-    originalPrice: 44.99,
-    rating: 5.0,
-    reviewCount: 129,
+    title: "Name In Runes Viking - Personalized Shirt",
+    price: 24.95,
+    rating: 4.6,
+    reviewCount: 78,
     image:
-      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Product+Image",
-    discount: 44,
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Viking+Shirt",
+  },
+  {
+    id: "6",
+    title: "King & Queen Custom Couples Photo Drive Safe I Love You",
+    price: 24.95,
+    rating: 4.9,
+    reviewCount: 234,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Keychain",
+  },
+  {
+    id: "7",
+    title: "Custom Bestie Photo Trinket Tray For Best Friend Friendship",
+    price: 29.95,
+    rating: 5.0,
+    reviewCount: 167,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Trinket+Tray",
+  },
+  {
+    id: "8",
+    title: "Once A Brother, Always A Brother - Personalized Tumbler",
+    price: 32.95,
+    rating: 4.8,
+    reviewCount: 92,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Tumbler",
   },
 ];
 
@@ -120,79 +138,708 @@ const photoGifts = [
   },
 ];
 
+const wearableBlankets = [
+  // Wearable blanket products
+  {
+    id: "11",
+    title: "The Best Player Custom Name - Personalized Wearable Blanket",
+    price: 59.95,
+    rating: 4.9,
+    reviewCount: 234,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Gaming+Blanket",
+    category: "Wearable blanket",
+  },
+  {
+    id: "12",
+    title: "I'm Gaming Do Not Disturb - Personalized Wearable Blanket",
+    price: 59.95,
+    rating: 4.8,
+    reviewCount: 189,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Gaming+Blanket+2",
+    category: "Wearable blanket",
+  },
+  {
+    id: "13",
+    title:
+      "Birth Flower Book Lovers, Books Quotes - Personalized Wearable Blanket",
+    price: 59.95,
+    rating: 5.0,
+    reviewCount: 312,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Reading+Blanket",
+    category: "Wearable blanket",
+  },
+  {
+    id: "14",
+    title:
+      "God Says I Am Name Letter In Bible Toile De Jouy Style - Personalized Wearable Blanket",
+    price: 59.95,
+    rating: 4.9,
+    reviewCount: 156,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Faith+Blanket",
+    category: "Wearable blanket",
+  },
+  // Blanket products
+  {
+    id: "15",
+    title: "Cozy Winter Throw Blanket - Personalized",
+    price: 49.95,
+    rating: 4.7,
+    reviewCount: 145,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Throw+Blanket",
+    category: "Blanket",
+  },
+  {
+    id: "16",
+    title: "Family Photo Fleece Blanket",
+    price: 54.95,
+    rating: 4.9,
+    reviewCount: 278,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Fleece+Blanket",
+    category: "Blanket",
+  },
+  {
+    id: "17",
+    title: "Custom Name Knitted Blanket",
+    price: 64.95,
+    rating: 5.0,
+    reviewCount: 189,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Knitted+Blanket",
+    category: "Blanket",
+  },
+  {
+    id: "18",
+    title: "Personalized Sherpa Blanket",
+    price: 59.95,
+    rating: 4.8,
+    reviewCount: 201,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Sherpa+Blanket",
+    category: "Blanket",
+  },
+  // Shirt products
+  {
+    id: "19",
+    title: "Custom Name T-Shirt - Personalized",
+    price: 24.95,
+    rating: 4.6,
+    reviewCount: 456,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=T-Shirt",
+    category: "Shirt",
+  },
+  {
+    id: "20",
+    title: "Photo Print T-Shirt",
+    price: 29.95,
+    rating: 4.8,
+    reviewCount: 312,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Photo+T-Shirt",
+    category: "Shirt",
+  },
+  {
+    id: "21",
+    title: "Vintage Style Custom Shirt",
+    price: 27.95,
+    rating: 4.7,
+    reviewCount: 234,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Vintage+Shirt",
+    category: "Shirt",
+  },
+  {
+    id: "22",
+    title: "Personalized Long Sleeve Shirt",
+    price: 34.95,
+    rating: 4.9,
+    reviewCount: 189,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Long+Sleeve",
+    category: "Shirt",
+  },
+  // Hoodie products
+  {
+    id: "23",
+    title: "Custom Name Pullover Hoodie",
+    price: 44.95,
+    rating: 4.8,
+    reviewCount: 267,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Pullover+Hoodie",
+    category: "Hoodie",
+  },
+  {
+    id: "24",
+    title: "Photo Print Zip-Up Hoodie",
+    price: 49.95,
+    rating: 4.9,
+    reviewCount: 198,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Zip+Hoodie",
+    category: "Hoodie",
+  },
+  {
+    id: "25",
+    title: "Personalized Graphic Hoodie",
+    price: 47.95,
+    rating: 4.7,
+    reviewCount: 156,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Graphic+Hoodie",
+    category: "Hoodie",
+  },
+  {
+    id: "26",
+    title: "Custom Text Fleece Hoodie",
+    price: 45.95,
+    rating: 5.0,
+    reviewCount: 223,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Fleece+Hoodie",
+    category: "Hoodie",
+  },
+  // Sweatshirt products
+  {
+    id: "27",
+    title: "Personalized Crewneck Sweatshirt",
+    price: 39.95,
+    rating: 4.8,
+    reviewCount: 189,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Crewneck",
+    category: "Sweatshirt",
+  },
+  {
+    id: "28",
+    title: "Custom Name Sweatshirt",
+    price: 42.95,
+    rating: 4.9,
+    reviewCount: 245,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Sweatshirt",
+    category: "Sweatshirt",
+  },
+  {
+    id: "29",
+    title: "Photo Print Sweatshirt",
+    price: 44.95,
+    rating: 4.7,
+    reviewCount: 167,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Photo+Sweatshirt",
+    category: "Sweatshirt",
+  },
+  {
+    id: "30",
+    title: "Personalized Graphic Sweatshirt",
+    price: 41.95,
+    rating: 4.8,
+    reviewCount: 201,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Graphic+Sweatshirt",
+    category: "Sweatshirt",
+  },
+  // Fleece scarf products
+  {
+    id: "31",
+    title: "Custom Name Fleece Scarf",
+    price: 19.95,
+    rating: 4.9,
+    reviewCount: 134,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Fleece+Scarf",
+    category: "Fleece scarf",
+  },
+  {
+    id: "32",
+    title: "Personalized Photo Scarf",
+    price: 24.95,
+    rating: 4.8,
+    reviewCount: 98,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Photo+Scarf",
+    category: "Fleece scarf",
+  },
+  {
+    id: "33",
+    title: "Custom Text Fleece Scarf",
+    price: 22.95,
+    rating: 5.0,
+    reviewCount: 156,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Text+Scarf",
+    category: "Fleece scarf",
+  },
+  {
+    id: "34",
+    title: "Personalized Pattern Scarf",
+    price: 21.95,
+    rating: 4.7,
+    reviewCount: 112,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Pattern+Scarf",
+    category: "Fleece scarf",
+  },
+];
+
+const wearableCategories = [
+  { name: "Wearable blanket" },
+  { name: "Blanket" },
+  { name: "Shirt" },
+  { name: "Hoodie" },
+  { name: "Sweatshirt" },
+  { name: "Fleece scarf" },
+];
+
+const leggingsProducts = [
+  {
+    id: "35",
+    title: "This Ass Is Taken - Naughty Gifts For Wife - Personalized Leggings",
+    price: 32.95,
+    rating: 4.8,
+    reviewCount: 234,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Leggings+1",
+    category: "Leggings",
+  },
+  {
+    id: "36",
+    title:
+      "This A$$ Belongs To - Naughty Gifts For Wife, Girlfriend - Personalized Leggings",
+    price: 39.95,
+    rating: 4.9,
+    reviewCount: 189,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Leggings+2",
+    category: "Leggings",
+  },
+  {
+    id: "37",
+    title:
+      "He Always Has My Back - Naughty Gift For Wife, Girlfriend - Personalized Leggings",
+    price: 32.95,
+    rating: 4.7,
+    reviewCount: 156,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Leggings+3",
+    category: "Leggings",
+  },
+  {
+    id: "38",
+    title: "Custom Birth Flower With Name - Personalized Leggings",
+    price: 32.95,
+    rating: 5.0,
+    reviewCount: 278,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Leggings+4",
+    category: "Leggings",
+  },
+  // Jewelry dish products
+  {
+    id: "39",
+    title: "Personalized Jewelry Dish - Custom Name",
+    price: 19.95,
+    rating: 4.8,
+    reviewCount: 145,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Jewelry+Dish+1",
+    category: "Jewelry dish",
+  },
+  {
+    id: "40",
+    title: "Custom Photo Jewelry Tray",
+    price: 24.95,
+    rating: 4.9,
+    reviewCount: 198,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Jewelry+Dish+2",
+    category: "Jewelry dish",
+  },
+  {
+    id: "41",
+    title: "Personalized Trinket Dish",
+    price: 22.95,
+    rating: 4.7,
+    reviewCount: 167,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Jewelry+Dish+3",
+    category: "Jewelry dish",
+  },
+  {
+    id: "42",
+    title: "Custom Name Ceramic Dish",
+    price: 21.95,
+    rating: 5.0,
+    reviewCount: 223,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Jewelry+Dish+4",
+    category: "Jewelry dish",
+  },
+  // Mug products
+  {
+    id: "43",
+    title: "Personalized Photo Mug",
+    price: 24.95,
+    rating: 4.8,
+    reviewCount: 456,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Mug+1",
+    category: "Mug",
+  },
+  {
+    id: "44",
+    title: "Custom Name Coffee Mug",
+    price: 22.95,
+    rating: 4.9,
+    reviewCount: 312,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Mug+2",
+    category: "Mug",
+  },
+  {
+    id: "45",
+    title: "Personalized Quote Mug",
+    price: 24.95,
+    rating: 4.7,
+    reviewCount: 234,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Mug+3",
+    category: "Mug",
+  },
+  {
+    id: "46",
+    title: "Custom Couple Mug Set",
+    price: 49.95,
+    rating: 5.0,
+    reviewCount: 189,
+    image: "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Mug+4",
+    category: "Mug",
+  },
+  // Bottle lamp products
+  {
+    id: "47",
+    title: "Personalized Photo Bottle Lamp",
+    price: 34.95,
+    rating: 4.8,
+    reviewCount: 145,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Bottle+Lamp+1",
+    category: "Bottle lamp",
+  },
+  {
+    id: "48",
+    title: "Custom Name LED Bottle Lamp",
+    price: 39.95,
+    rating: 4.9,
+    reviewCount: 198,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Bottle+Lamp+2",
+    category: "Bottle lamp",
+  },
+  {
+    id: "49",
+    title: "Personalized 3D Bottle Lamp",
+    price: 44.95,
+    rating: 4.7,
+    reviewCount: 167,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Bottle+Lamp+3",
+    category: "Bottle lamp",
+  },
+  {
+    id: "50",
+    title: "Custom Photo Bottle Light",
+    price: 42.95,
+    rating: 5.0,
+    reviewCount: 223,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Bottle+Lamp+4",
+    category: "Bottle lamp",
+  },
+  // Suncatcher products
+  {
+    id: "51",
+    title: "Personalized Suncatcher Ornament",
+    price: 24.95,
+    rating: 4.8,
+    reviewCount: 134,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Suncatcher+1",
+    category: "Suncatcher",
+  },
+  {
+    id: "52",
+    title: "Custom Name Suncatcher",
+    price: 22.95,
+    rating: 4.9,
+    reviewCount: 98,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Suncatcher+2",
+    category: "Suncatcher",
+  },
+  {
+    id: "53",
+    title: "Personalized Photo Suncatcher",
+    price: 26.95,
+    rating: 4.7,
+    reviewCount: 156,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Suncatcher+3",
+    category: "Suncatcher",
+  },
+  {
+    id: "54",
+    title: "Custom Design Suncatcher",
+    price: 24.95,
+    rating: 5.0,
+    reviewCount: 112,
+    image:
+      "https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Suncatcher+4",
+    category: "Suncatcher",
+  },
+];
+
+const leggingsCategories = [
+  { name: "Leggings" },
+  { name: "Jewelry dish" },
+  { name: "Mug" },
+  { name: "Bottle lamp" },
+  { name: "Suncatcher" },
+];
+
+const shopByRecipientItems: ShopByItem[] = [
+  {
+    name: "For Bestie",
+    href: "/recipients/bestie",
+    image: "https://via.placeholder.com/256x256/FF6B9D/FFFFFF?text=Bestie",
+  },
+  {
+    name: "For Partner",
+    href: "/recipients/partner",
+    image: "https://via.placeholder.com/256x256/E91E63/FFFFFF?text=Partner",
+  },
+  {
+    name: "For Sibling",
+    href: "/recipients/sibling",
+    image: "https://via.placeholder.com/256x256/9C27B0/FFFFFF?text=Sibling",
+  },
+  {
+    name: "For Pet Lover",
+    href: "/recipients/pet-lover",
+    image: "https://via.placeholder.com/256x256/FF9800/FFFFFF?text=Pet",
+  },
+  {
+    name: "For Family",
+    href: "/recipients/family",
+    image: "https://via.placeholder.com/256x256/2196F3/FFFFFF?text=Family",
+  },
+  {
+    name: "For Mom",
+    href: "/recipients/mom",
+    image: "https://via.placeholder.com/256x256/EC407A/FFFFFF?text=Mom",
+  },
+  {
+    name: "For Dad",
+    href: "/recipients/dad",
+    image: "https://via.placeholder.com/256x256/4A90E2/FFFFFF?text=Dad",
+  },
+  {
+    name: "For Kid & Baby",
+    href: "/recipients/kid-baby",
+    image: "https://via.placeholder.com/256x256/FFC107/FFFFFF?text=Kid",
+  },
+];
+
+const shopByProductItems: ShopByItem[] = [
+  {
+    name: "Car Accessories",
+    href: "/products/car-accessories",
+    image: "https://via.placeholder.com/400x400/607D8B/FFFFFF?text=Car",
+  },
+  {
+    name: "Mug",
+    href: "/products/mug",
+    image: "https://via.placeholder.com/400x400/795548/FFFFFF?text=Mug",
+  },
+  {
+    name: "Sweatpants",
+    href: "/products/sweatpants",
+    image: "https://via.placeholder.com/400x400/9E9E9E/FFFFFF?text=Pants",
+  },
+  {
+    name: "Toiletry Bag",
+    href: "/products/toiletry-bag",
+    image: "https://via.placeholder.com/400x400/8D6E63/FFFFFF?text=Bag",
+  },
+  {
+    name: "Jewelry Dish",
+    href: "/products/jewelry-dish",
+    image: "https://via.placeholder.com/400x400/E1BEE7/FFFFFF?text=Dish",
+  },
+  {
+    name: "Blanket",
+    href: "/products/blanket",
+    image: "https://via.placeholder.com/400x400/FFE082/FFFFFF?text=Blanket",
+  },
+  {
+    name: "Wearable Blanket",
+    href: "/products/wearable-blanket",
+    image: "https://via.placeholder.com/400x400/BBDEFB/FFFFFF?text=Wearable",
+  },
+  {
+    name: "Doormat",
+    href: "/products/doormat",
+    image: "https://via.placeholder.com/400x400/BCAAA4/FFFFFF?text=Mat",
+  },
+  {
+    name: "Pillow",
+    href: "/products/pillow",
+    image: "https://via.placeholder.com/400x400/C5E1A5/FFFFFF?text=Pillow",
+  },
+  {
+    name: "Ugly Sweater",
+    href: "/products/ugly-sweater",
+    image: "https://via.placeholder.com/400x400/EF5350/FFFFFF?text=Sweater",
+  },
+  {
+    name: "Puzzle",
+    href: "/products/puzzle",
+    image: "https://via.placeholder.com/400x400/AB47BC/FFFFFF?text=Puzzle",
+  },
+  {
+    name: "Runner Rug",
+    href: "/products/runner-rug",
+    image: "https://via.placeholder.com/400x400/78909C/FFFFFF?text=Rug",
+  },
+];
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Banner */}
-      <section className="relative bg-gradient-to-r from-pink-50 to-red-50 py-20 overflow-hidden">
+      {/* Category Icons Section */}
+      <section className="py-8 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="relative z-10">
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
-                LOVE IN YOUR EYES
-                <br />
-                Be my{" "}
-                <span className="text-red-500">
-                  V<span className="text-red-500">❤️</span>lentine
-                </span>
-              </h1>
-              <p className="text-lg text-gray-700 mb-6">
-                Create personalized gifts that express your love and create
-                cherished memories.
-              </p>
-              <Link
-                href="/valentine"
-                className="inline-block bg-red-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-red-600 transition-colors"
-              >
-                SHOP NOW
-              </Link>
-            </div>
-            <div className="relative h-96 md:h-[500px] rounded-lg overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-200 via-red-200 to-orange-200 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">💝</div>
-                  <p className="text-gray-700 text-lg">Personalized Gifts</p>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap">
+            <CategoryIcon
+              name="Winter Gifts"
+              href="/winter-gifts"
+              image="https://via.placeholder.com/64x64/4A90E2/FFFFFF?text=❄️"
+              hoverColor="orange"
+            />
+            <CategoryIcon
+              name="Valentine"
+              href="/valentine"
+              image="https://via.placeholder.com/64x64/E91E63/FFFFFF?text=❤️"
+              hoverColor="red"
+            />
+            <CategoryIcon
+              name="For Him"
+              href="/recipients/for-him"
+              image="https://via.placeholder.com/64x64/2196F3/FFFFFF?text=👨"
+              hoverColor="blue"
+            />
+            <CategoryIcon
+              name="For Her"
+              href="/recipients/for-her"
+              image="https://via.placeholder.com/64x64/EC407A/FFFFFF?text=👩"
+              hoverColor="pink"
+            />
+            <CategoryIcon
+              name="Friends"
+              href="/recipients/friends"
+              image="https://via.placeholder.com/64x64/9C27B0/FFFFFF?text=👫"
+              hoverColor="purple"
+            />
+            <CategoryIcon
+              name="Shirt"
+              href="/apparel"
+              image="https://via.placeholder.com/64x64/FF9800/FFFFFF?text=👕"
+              hoverColor="orange"
+            />
           </div>
         </div>
       </section>
 
-      {/* Trending Section */}
+      {/* Valentine's Gifts Hero Banner */}
+      <HeroBanner
+        title="Valentine's Gifts"
+        subtitle="For the love that has learned, grown, and stayed"
+        image="https://via.placeholder.com/800x600/FF6B9D/FFFFFF?text=Valentine's+Gifts"
+        imageAlt="Valentine's Gifts"
+        buttonText="SHOP NOW"
+        buttonHref="/valentine"
+        backgroundColor="bg-linear-to-r from-orange-50 via-red-50 to-pink-50"
+        titleColor="text-red-600"
+        subtitleColor="text-gray-700"
+      />
+
+      {/* Trending Now Section */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">
-              2026 Valentine Trending
-            </h2>
-            <Link
-              href="/valentine"
-              className="text-orange-500 hover:text-orange-600 font-medium flex items-center gap-2"
-            >
-              BROWSE MORE{" "}
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {trendingProducts.map((product) => (
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            Trending Now
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {trendingNowProducts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
           </div>
+          <div className="text-center">
+            <CollectionButton href="/products">SHOP ALL</CollectionButton>
+          </div>
         </div>
       </section>
+
+      {/* Winter Gifts Banner */}
+      <HeroBanner
+        title="Winter Gifts"
+        subtitle="Soft Little Comforts for Chilly Days"
+        image="https://via.placeholder.com/800x600/4A90E2/FFFFFF?text=Winter+Gifts"
+        imageAlt="Winter Gifts"
+        buttonText="SHOP ALL"
+        buttonHref="/winter-gifts"
+        backgroundColor="bg-linear-to-r from-blue-50 via-cyan-50 to-white"
+        titleColor="text-red-600"
+        subtitleColor="text-blue-800"
+        reverse={false}
+      />
+
+      {/* Wearable Blankets Section */}
+      <FilterableProductSection
+        products={wearableBlankets}
+        categories={wearableCategories}
+        collectionHref="/apparel"
+      />
+
+      {/* Gifts For Her Banner */}
+      <HeroBanner
+        title="Gifts For Her"
+        subtitle="Because She's Worth It"
+        image="https://via.placeholder.com/800x600/EC407A/FFFFFF?text=Gifts+For+Her"
+        imageAlt="Gifts For Her"
+        buttonText="SHOP ALL"
+        buttonHref="/recipients/for-her"
+        backgroundColor="bg-amber-50"
+        titleColor="text-red-600"
+        subtitleColor="text-blue-800"
+        reverse={true}
+      />
+
+      {/* Leggings Section */}
+      <FilterableProductSection
+        products={leggingsProducts}
+        categories={leggingsCategories}
+        collectionHref="/apparel/leggings"
+      />
+
+      {/* Shop By Recipient Section */}
+      <ShopByGrid
+        title="Shop By Recipient"
+        items={shopByRecipientItems}
+        shape="circle"
+        columns={{ mobile: 2, tablet: 4, desktop: 4 }}
+      />
+
+      {/* Shop By Product Section */}
+      <ShopByGrid
+        title="Shop By Product"
+        items={shopByProductItems}
+        shape="square"
+        columns={{ mobile: 2, tablet: 3, desktop: 4 }}
+      />
 
       {/* Photo Gifts Section */}
       <section className="py-12 bg-gray-50">
@@ -225,103 +872,6 @@ export default function Home() {
             {photoGifts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why Us Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-            Why Us For Valentine Gifts?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">On-Time Delivery</h3>
-              <p className="text-gray-600">
-                We ensure gifts arrive promptly for celebrations.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">
-                Satisfaction Guarantee
-              </h3>
-              <p className="text-gray-600">
-                Not satisfied? Easy replacements or refunds.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Superior Quality</h3>
-              <p className="text-gray-600">
-                Made with premium materials for lasting beauty.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Holiday Support</h3>
-              <p className="text-gray-600">
-                Friendly help anytime during the holidays.
-              </p>
-            </div>
           </div>
         </div>
       </section>
