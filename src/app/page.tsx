@@ -3,11 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import ProductCard from "@/components/ui/ProductCard";
-import CategoryIcon from "@/components/ui/CategoryIcon";
 import CollectionButton from "@/components/ui/CollectionButton";
 import FilterableProductSection from "@/components/FilterableProductSection";
 import HeroBanner from "@/components/HeroBanner";
 import ShopByGrid, { ShopByItem } from "@/components/ShopByGrid";
+import TrendingMenu from "@/components/TrendingMenu";
 
 // Mock product data - replace with real data from Shopify
 const trendingNowProducts = [
@@ -710,48 +710,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Category Icons Section */}
-      <section className="py-8 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap">
-            <CategoryIcon
-              name="Winter Gifts"
-              href="/winter-gifts"
-              image="https://via.placeholder.com/64x64/4A90E2/FFFFFF?text=❄️"
-              hoverColor="orange"
-            />
-            <CategoryIcon
-              name="Valentine"
-              href="/valentine"
-              image="https://via.placeholder.com/64x64/E91E63/FFFFFF?text=❤️"
-              hoverColor="red"
-            />
-            <CategoryIcon
-              name="For Him"
-              href="/recipients/for-him"
-              image="https://via.placeholder.com/64x64/2196F3/FFFFFF?text=👨"
-              hoverColor="blue"
-            />
-            <CategoryIcon
-              name="For Her"
-              href="/recipients/for-her"
-              image="https://via.placeholder.com/64x64/EC407A/FFFFFF?text=👩"
-              hoverColor="pink"
-            />
-            <CategoryIcon
-              name="Friends"
-              href="/recipients/friends"
-              image="https://via.placeholder.com/64x64/9C27B0/FFFFFF?text=👫"
-              hoverColor="purple"
-            />
-            <CategoryIcon
-              name="Shirt"
-              href="/apparel"
-              image="https://via.placeholder.com/64x64/FF9800/FFFFFF?text=👕"
-              hoverColor="orange"
-            />
-          </div>
-        </div>
-      </section>
+      <TrendingMenu />
 
       {/* Valentine's Gifts Hero Banner */}
       <HeroBanner
@@ -841,40 +800,89 @@ export default function Home() {
         columns={{ mobile: 2, tablet: 3, desktop: 4 }}
       />
 
-      {/* Photo Gifts Section */}
-      <section className="py-12 bg-gray-50">
+      {/* Happy Customers Section */}
+      <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Photo Gifts For Cherished Moments
-            </h2>
-            <Link
-              href="/photo-gifts"
-              className="text-orange-500 hover:text-orange-600 font-medium flex items-center gap-2"
-            >
-              BROWSE MORE{" "}
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {photoGifts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
-          </div>
+          <ul className="list-none p-0 m-0 grid grid-cols-1 lg:grid-cols-8 gap-6 auto-rows-auto">
+            {/* Text Content - spans 4 columns on large screens, row 1 */}
+            <li className="lg:col-span-4 flex flex-col justify-center">
+              <h2 className="text-4xl md:text-5xl font-bold text-orange-500 mb-4">
+                Happy Customers
+              </h2>
+              <p className="text-base md:text-lg text-gray-900 mb-6">
+                Unwrap Happiness with Every Gift. Join the Macorner Family of
+                Delighted Shoppers!
+              </p>
+              <button className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium px-6 py-3 rounded-lg transition-colors w-fit">
+                Show More
+              </button>
+            </li>
+            {/* Top Row Images - row 1, 2 images, each spans 2 columns */}
+            <li className="lg:col-span-2 relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src="https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Customer+1"
+                alt="Happy Customer 1"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 25vw"
+                unoptimized
+              />
+            </li>
+            <li className="lg:col-span-2 relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src="https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Customer+2"
+                alt="Happy Customer 2"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 25vw"
+                unoptimized
+              />
+            </li>
+            {/* Bottom Row: 4 Images - row 2, each spans 2 columns */}
+            <li className="lg:col-span-2 relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src="https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Customer+3"
+                alt="Happy Customer 3"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 25vw"
+                unoptimized
+              />
+            </li>
+            <li className="lg:col-span-2 relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src="https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Customer+4"
+                alt="Happy Customer 4"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 25vw"
+                unoptimized
+              />
+            </li>
+            <li className="lg:col-span-2 relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src="https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Customer+5"
+                alt="Happy Customer 5"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 25vw"
+                unoptimized
+              />
+            </li>
+            <li className="lg:col-span-2 relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src="https://via.placeholder.com/400x400/f3f4f6/9ca3af?text=Customer+6"
+                alt="Happy Customer 6"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 25vw"
+                unoptimized
+              />
+            </li>
+          </ul>
         </div>
       </section>
+
     </div>
   );
 }

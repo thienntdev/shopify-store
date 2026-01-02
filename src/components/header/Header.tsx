@@ -1,5 +1,4 @@
 /** @format */
-"use client";
 
 import PromotionBanner from "./PromotionBanner";
 import SearchBar from "./SearchBar";
@@ -7,8 +6,11 @@ import NavigationMenu from "./NavigationMenu";
 import TrackOrder from "../ui/TrackOrder";
 import CartButton from "../ui/CartButton";
 import Logo from "../ui/Logo";
+import { getMenu } from "@/libs/shopify";
 
-export default function Header() {
+export default async function Header() {
+  const menu = await getMenu("next-js-frontend-menu");
+  console.log("Menu: ", menu);
   return (
     <header className="bg-white sticky top-0 z-50 shadow-sm">
       {/* Promotional Banner */}
