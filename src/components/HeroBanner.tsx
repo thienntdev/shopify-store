@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import CollectionButton from "@/components/ui/CollectionButton";
+import { getCollectionByHandle } from "@/libs/shopify";
 
 interface HeroBannerProps {
   title: string;
@@ -14,9 +15,10 @@ interface HeroBannerProps {
   backgroundColor?: string;
   titleColor?: string;
   subtitleColor?: string;
+  collectionHandle?: string;
 }
 
-export default function HeroBanner({
+export default async function HeroBanner({
   title,
   subtitle,
   image,
@@ -24,17 +26,29 @@ export default function HeroBanner({
   buttonText,
   buttonHref,
   reverse = false,
+  collectionHandle,
   backgroundColor = "bg-linear-to-r from-orange-50 via-red-50 to-pink-50",
   titleColor = "text-red-600",
   subtitleColor = "text-gray-700",
 }: HeroBannerProps) {
+
+  if (collectionHandle) {
+    const collection = await getCollectionByHandle(collectionHandle);
+    image = collection?.image?.url || "";
+    imageAlt = collection?.title || "";
+    title = collection?.title || "";
+    subtitle = collection?.description || "";
+    buttonText = "SHOP NOW";
+    buttonHref = `/collections/${collectionHandle}`;
+  }
+  
   return (
     <section className={`py-8 ${backgroundColor}`}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Image Section */}
           <div className={`relative ${reverse ? "lg:order-1" : "lg:order-2"}`}>
-            <div className="relative w-4/5 h-64 md:h-80 rounded-lg overflow-hidden shadow-lg mx-auto lg:mx-0">
+            <div className={`relative w-4/5 h-64 md:h-80 rounded-lg overflow-hidden shadow-lg mx-auto lg:mx-0`}>
               <Image
                 src={image}
                 alt={imageAlt}

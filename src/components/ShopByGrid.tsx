@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { getMenu } from "@/libs/shopify";
 
 export interface ShopByItem {
   name: string;
@@ -11,7 +12,6 @@ export interface ShopByItem {
 
 interface ShopByGridProps {
   title: string;
-  items: ShopByItem[];
   shape?: "circle" | "square";
   columns?: {
     mobile?: number;
@@ -20,16 +20,24 @@ interface ShopByGridProps {
   };
   imageClassName?: string;
   containerClassName?: string;
+  menuHandle: string;
 }
 
-export default function ShopByGrid({
+export default async function ShopByGrid({
   title,
-  items,
+  menuHandle,
   shape = "circle",
   columns = { mobile: 2, tablet: 4, desktop: 4 },
   imageClassName = "",
   containerClassName = "",
 }: ShopByGridProps) {
+  const menuItems = await getMenu(menuHandle);
+  const items = menuItems.map((item) => ({
+    name: item.title,
+    href: item.path,
+    image: item.image?.url || "",
+    title: item.title,
+  }));
   // Map columns to Tailwind grid classes
   const gridColsMap: Record<number, string> = {
     1: "grid-cols-1",
@@ -75,7 +83,7 @@ export default function ShopByGrid({
         >
           {items.map((item) => (
             <Link
-              key={item.name}
+              key={item.title}
               href={item.href}
               className="flex flex-col items-center gap-3 hover:opacity-70 transition-opacity group"
             >

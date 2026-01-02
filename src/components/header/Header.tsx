@@ -10,7 +10,6 @@ import { getMenu } from "@/libs/shopify";
 
 export default async function Header() {
   const menu = await getMenu("next-js-frontend-menu");
-  console.log("Menu: ", menu);
   return (
     <header className="bg-white sticky top-0 z-50 shadow-sm">
       {/* Promotional Banner */}

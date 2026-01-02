@@ -1,4 +1,6 @@
-export const getMenuQuery = `
+import imageFragment from "../fragments/image";
+
+export const getMenuQuery = /* GraphQL */ `
     query getMenu($handle: String!) {
         menu(handle: $handle) {
             items {
@@ -9,10 +11,7 @@ export const getMenuQuery = `
                         ... on Collection {
                             id
                             image {
-                                url
-                                altText
-                                width
-                                height
+                                ...image
                             }
                         }
                     }
@@ -20,4 +19,5 @@ export const getMenuQuery = `
             }
         }
     }
+    ${imageFragment}
 `;  
