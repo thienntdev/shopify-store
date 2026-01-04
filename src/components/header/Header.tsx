@@ -4,7 +4,7 @@ import PromotionBanner from "./PromotionBanner";
 import SearchBar from "./SearchBar";
 import NavigationMenu from "./NavigationMenu";
 import TrackOrder from "../ui/TrackOrder";
-import CartButton from "../ui/CartButton";
+import CartButton from "../ui/button/CartButton";
 import Logo from "../ui/Logo";
 
 export default async function Header() {

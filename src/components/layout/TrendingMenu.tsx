@@ -2,7 +2,7 @@
 
 import { getMenu } from "@/libs/shopify";
 import { transformShopifyImageUrl } from "@/utils/image";
-import CategoryIcon from "./ui/CategoryIcon";
+import CategoryIcon from "../ui/icon/CategoryIcon";
 
 export interface TrendingCategory {
   name: string;
@@ -11,15 +11,15 @@ export interface TrendingCategory {
 }
 
 export default async function TrendingMenu() {
-    const trendingMenu = await getMenu("trending-menu");
-    let categories: TrendingCategory[] = [];
-    if (trendingMenu.length > 0) {
-      categories = trendingMenu.map((category) => ({
-        name: category.title,
-        href: category.path,
-        image: transformShopifyImageUrl(category.image?.url, 128) || "https://via.placeholder.com/128x128/f3f4f6/9ca3af?text=Category",
-      }));
-    }
+  const trendingMenu = await getMenu("trending-menu");
+  let categories: TrendingCategory[] = [];
+  if (trendingMenu.length > 0) {
+    categories = trendingMenu.map((category) => ({
+      name: category.title,
+      href: category.path,
+      image: transformShopifyImageUrl(category.image?.url, 128) || "",
+    }));
+  }
   return (
     <section className="py-8 bg-white border-b border-gray-100">
       <div className="container mx-auto px-4">

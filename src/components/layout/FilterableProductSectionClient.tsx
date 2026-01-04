@@ -4,10 +4,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import ProductCard from "./ProductCard";
-import CollectionButton from "./ui/CollectionButton";
+import ProductCard from "../product/ProductCard";
+import CollectionButton from "../ui/button/CollectionButton";
 import { Product } from "@/libs/shopify/types";
-import { getProductsByCollection } from "./actions";
+import { getProductsByCollection } from "../actions";
 
 interface CategoryFilterProps {
   categories: { handle: string }[];

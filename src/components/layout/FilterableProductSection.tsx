@@ -2,9 +2,8 @@
 /** @format */
 
 import FilterableProductSectionClient from "./FilterableProductSectionClient";
-import { getCollectionByHandle, getCollectionProducts } from "@/libs/shopify";
-import { Product } from "@/libs/shopify/types";
-import { getProductsByCollection } from "./actions";
+import { getCollectionProducts } from "@/libs/shopify";
+
 
 interface FilterableProductSectionProps {
   categories: { handle: string }[]; // Mỗi handle là một collection handle

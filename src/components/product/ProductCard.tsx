@@ -4,6 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Product } from "@/libs/shopify/types";
+import { formatMoney } from "@/utils/money";
 
 interface ProductCardProps {
   product: Product;
@@ -11,14 +12,6 @@ interface ProductCardProps {
   badgeText?: string; // Custom badge text
 }
 
-// Helper function để format currency
-function formatMoney(amount: string, currencyCode: string): string {
-  const numAmount = parseFloat(amount);
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-  }).format(numAmount);
-}
 
 // Helper function để extract product ID
 function extractProductId(gid: string): string {

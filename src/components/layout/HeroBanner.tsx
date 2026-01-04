@@ -1,16 +1,11 @@
 /** @format */
 
 import Image from "next/image";
-import CollectionButton from "@/components/ui/CollectionButton";
+import CollectionButton from "@/components/ui/button/CollectionButton";
 import { getCollectionByHandle } from "@/libs/shopify";
 
 interface HeroBannerProps {
-  title: string;
-  subtitle: string;
-  image: string;
-  imageAlt: string;
   buttonText: string;
-  buttonHref: string;
   reverse?: boolean; // Nếu true: image bên trái, text bên phải. Nếu false: text bên trái, image bên phải
   backgroundColor?: string;
   titleColor?: string;
@@ -19,18 +14,18 @@ interface HeroBannerProps {
 }
 
 export default async function HeroBanner({
-  title,
-  subtitle,
-  image,
-  imageAlt,
   buttonText,
-  buttonHref,
   reverse = false,
   collectionHandle,
   backgroundColor = "bg-linear-to-r from-orange-50 via-red-50 to-pink-50",
   titleColor = "text-red-600",
   subtitleColor = "text-gray-700",
 }: HeroBannerProps) {
+  let image = "";
+  let imageAlt = "";
+  let title = "";
+  let subtitle = "";
+  let buttonHref = "";
 
   if (collectionHandle) {
     const collection = await getCollectionByHandle(collectionHandle);
@@ -38,7 +33,6 @@ export default async function HeroBanner({
     imageAlt = collection?.title || "";
     title = collection?.title || "";
     subtitle = collection?.description || "";
-    buttonText = "SHOP NOW";
     buttonHref = `/collections/${collectionHandle}`;
   }
   
@@ -55,6 +49,7 @@ export default async function HeroBanner({
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 50vw"
+                unoptimized={image.includes("cdn.shopify.com")}
               />
             </div>
           </div>

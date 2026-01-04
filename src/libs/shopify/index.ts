@@ -119,11 +119,12 @@ function reshapeProducts(products: ShopifyProduct[]) {
 
 export async function getMenu(handle: string) : Promise<Menu[]> {
     const res = await shopifyFetch<ShopifyMenuOperation>({
-        query: getMenuQuery,
-        tags: [TAGS.collections],
-        variables: {
-            handle
-        }
+      cache: "no-store",
+      query: getMenuQuery,
+      tags: [TAGS.collections],
+      variables: {
+        handle
+      }
     });
     
     return (

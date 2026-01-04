@@ -1,8 +1,8 @@
 // src/components/TrendingNow.tsx
 /** @format */
 
-import ProductCard from "./ProductCard";
-import CollectionButton from "./ui/CollectionButton";
+import ProductCard from "../product/ProductCard";
+import CollectionButton from "../ui/button/CollectionButton";
 import { getCollectionProducts } from "@/libs/shopify";
 
 interface TrendingNowSectionProps {
@@ -17,9 +17,10 @@ export default async function TrendingNow({
   title = "Trending Now",
   collectionHandle = "best-sellers",
   limit = 8,
-  shopAllHref = "/collections/best-sellers?sort_by=sales_amount&sort_order=desc",
-  shopAllText = "SHOP ALL",
 }: TrendingNowSectionProps) {
+  const shopAllHref = `/collections/${collectionHandle}`;
+  const shopAllText = "SHOP ALL";
+
   // Fetch products từ collection
   const products = await getCollectionProducts({ 
     collection: collectionHandle, 
