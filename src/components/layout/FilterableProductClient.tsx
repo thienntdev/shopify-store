@@ -1,4 +1,3 @@
-// src/components/FilterableProductSectionClient.tsx
 /** @format */
 
 "use client";
@@ -46,30 +45,28 @@ function CategoryFilter({
   );
 }
 
-interface FilterableProductSectionClientProps {
+interface FilterableProductClientProps {
   initialProducts: (Product & { category: string })[];
   initialCategory: string;
   categories: { handle: string }[];
   backgroundColor?: string;
   showMoreButtonText?: string;
-  collectionHref?: string;
 }
 
-export default function FilterableProductSectionClient({
+export default function FilterableProductClient({
   initialProducts,
   initialCategory,
   categories,
   backgroundColor = "bg-white",
   showMoreButtonText = "Show More",
-  collectionHref,
-}: FilterableProductSectionClientProps) {
+}: FilterableProductClientProps) {
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [products, setProducts] = useState(initialProducts);
   const [isPending, startTransition] = useTransition();
 
   const handleCategoryChange = (categoryHandle: string) => {
     setActiveCategory(categoryHandle);
-    
+
     // Fetch products khi click vào category
     startTransition(async () => {
       const newProducts = await getProductsByCollection(categoryHandle);
@@ -109,7 +106,7 @@ export default function FilterableProductSectionClient({
         )}
 
         <div className="text-center">
-          <CollectionButton href={collectionHref || `/collections/${activeCategory}`}>
+          <CollectionButton href={`/collections/${activeCategory}`}>
             {showMoreButtonText}
           </CollectionButton>
         </div>

@@ -1,3 +1,5 @@
+/** @format */
+
 // src/components/actions.ts
 /** @format */
 
@@ -13,6 +15,7 @@ export async function getProductsByCollection(
     collection: collectionHandle,
     sortKey: "BEST_SELLING",
     reverse: false,
+    first: 8,
   });
 
   // Gán category handle cho mỗi product

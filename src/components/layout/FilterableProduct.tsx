@@ -1,23 +1,19 @@
-// src/components/FilterableProductSection.tsx
 /** @format */
 
-import FilterableProductSectionClient from "./FilterableProductSectionClient";
+import FilterableProductClient from "./FilterableProductClient";
 import { getCollectionProducts } from "@/libs/shopify";
 
-
-interface FilterableProductSectionProps {
+interface FilterableProductProps {
   categories: { handle: string }[]; // Mỗi handle là một collection handle
   backgroundColor?: string;
   showMoreButtonText?: string;
-  collectionHref?: string;
 }
 
-export default async function FilterableProductSection({
+export default async function FilterableProduct({
   categories,
   backgroundColor = "bg-white",
   showMoreButtonText = "Show More",
-  collectionHref,
-}: FilterableProductSectionProps) {
+}: FilterableProductProps) {
   // Chỉ fetch products của category đầu tiên khi load trang
   const initialCategory = categories[0]?.handle || "";
   const initialProducts = initialCategory
@@ -35,13 +31,12 @@ export default async function FilterableProductSection({
   }));
 
   return (
-    <FilterableProductSectionClient
+    <FilterableProductClient
       initialProducts={productsWithCategory}
       initialCategory={initialCategory}
       categories={categories}
       backgroundColor={backgroundColor}
       showMoreButtonText={showMoreButtonText}
-      collectionHref={collectionHref || `/collections/${initialCategory}`}
     />
   );
 }

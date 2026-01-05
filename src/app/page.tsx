@@ -1,6 +1,6 @@
 /** @format */
 
-import FilterableProductSection from "@/components/layout/FilterableProductSection";
+import FilterableProductSection from "@/components/layout/FilterableProduct";
 import HeroBanner from "@/components/layout/HeroBanner";
 import ShopByGrid, { ShopByItem } from "@/components/layout/ShopByGrid";
 import TrendingMenu from "@/components/layout/TrendingMenu";
@@ -37,7 +37,7 @@ export default function Home() {
         subtitleColor="text-gray-700"
       />
 
-      <TrendingNow collectionHandle="best-sellers" title="Trending Now"/>
+      <TrendingNow collectionHandle="best-sellers" title="Trending Now" />
 
       <HeroBanner
         collectionHandle="winter-gifts"
@@ -48,9 +48,7 @@ export default function Home() {
         reverse={false}
       />
 
-      <FilterableProductSection
-        categories={wearableCategories}
-      />
+      <FilterableProductSection categories={wearableCategories} />
 
       <HeroBanner
         collectionHandle="gifts-for-her"
@@ -61,9 +59,7 @@ export default function Home() {
         reverse={true}
       />
 
-      <FilterableProductSection
-        categories={wearableCategories}
-      />
+      <FilterableProductSection categories={wearableCategories} />
 
       <ShopByGrid
         title="Shop By Recipient"
