@@ -21,6 +21,7 @@ export default async function FilterableProduct({
         collection: initialCategory,
         sortKey: "BEST_SELLING",
         reverse: false,
+        first: 4,
       })
     : [];
 

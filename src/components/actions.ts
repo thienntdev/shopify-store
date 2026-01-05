@@ -9,13 +9,14 @@ import { getCollectionProducts } from "@/libs/shopify";
 import { Product } from "@/libs/shopify/types";
 
 export async function getProductsByCollection(
-  collectionHandle: string
+  collectionHandle: string,
+  first: number = 4
 ): Promise<(Product & { category: string })[]> {
   const products = await getCollectionProducts({
     collection: collectionHandle,
     sortKey: "BEST_SELLING",
     reverse: false,
-    first: 8,
+    first: first,
   });
 
   // Gán category handle cho mỗi product
