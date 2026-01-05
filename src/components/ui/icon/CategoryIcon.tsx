@@ -47,7 +47,7 @@ export default function CategoryIcon({
           </div>
         )}
       </div>
-      <span className="text-sm font-medium text-gray-700">{name}</span>
+      <span className="text-xl font-medium text-gray-700">{name}</span>
     </Link>
   );
 }

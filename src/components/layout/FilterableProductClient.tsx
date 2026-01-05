@@ -2,14 +2,14 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import ProductCard from "../product/ProductCard";
 import CollectionButton from "../ui/button/CollectionButton";
 import { Product } from "@/libs/shopify/types";
 import { getProductsByCollection } from "../actions";
 
 interface CategoryFilterProps {
-  categories: { handle: string }[];
+  categories: { handle: string; title: string }[];
   activeCategory: string;
   onCategoryChange: (category: string) => void;
   isLoading?: boolean;
@@ -19,7 +19,6 @@ function CategoryFilter({
   categories,
   activeCategory,
   onCategoryChange,
-  isLoading = false,
 }: CategoryFilterProps) {
   return (
     <div className="flex items-center gap-4 flex-wrap justify-center">
@@ -30,14 +29,13 @@ function CategoryFilter({
           <button
             key={category.handle}
             onClick={() => onCategoryChange(category.handle)}
-            disabled={isLoading}
-            className={`cursor-pointer px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`cursor-pointer px-4 py-2 rounded-lg font-medium text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               isActive
                 ? "bg-orange-500 text-white border-2 border-orange-500"
                 : "bg-white text-gray-700 border-2 border-gray-300 hover:border-orange-500 hover:text-orange-500"
             }`}
           >
-            {category.handle}
+            {category.title}
           </button>
         );
       })}
@@ -48,7 +46,7 @@ function CategoryFilter({
 interface FilterableProductClientProps {
   initialProducts: (Product & { category: string })[];
   initialCategory: string;
-  categories: { handle: string }[];
+  categories: { handle: string; title: string }[];
   backgroundColor?: string;
   showMoreButtonText?: string;
 }
@@ -64,15 +62,38 @@ export default function FilterableProductClient({
   const [products, setProducts] = useState(initialProducts);
   const [isPending, startTransition] = useTransition();
 
-  const handleCategoryChange = (categoryHandle: string) => {
-    setActiveCategory(categoryHandle);
+  // Cache để lưu products theo category handle
+  // Sử dụng useRef để cache không bị reset khi re-render
+  const productsCache = useRef<Map<string, (Product & { category: string })[]>>(
+    new Map([[initialCategory, initialProducts]])
+  );
 
-    // Fetch products khi click vào category
-    startTransition(async () => {
-      const newProducts = await getProductsByCollection(categoryHandle);
-      console.log("newProducts", newProducts);
-      setProducts(newProducts);
-    });
+  const handleCategoryChange = (categoryHandle: string) => {
+    // Nếu category đang active thì không làm gì cả
+    if (categoryHandle === activeCategory) {
+      return;
+    }
+
+    // Kiểm tra cache trước
+    const cachedProducts = productsCache.current.get(categoryHandle);
+
+    if (cachedProducts) {
+      // Nếu có trong cache thì dùng luôn, không cần fetch
+      console.log("useCache");
+      setActiveCategory(categoryHandle);
+      setProducts(cachedProducts);
+    } else {
+      // Nếu chưa có trong cache thì fetch và lưu vào cache
+      setActiveCategory(categoryHandle);
+      console.log("not useCache");
+
+      startTransition(async () => {
+        const newProducts = await getProductsByCollection(categoryHandle);
+        // Lưu vào cache
+        productsCache.current.set(categoryHandle, newProducts);
+        setProducts(newProducts);
+      });
+    }
   };
 
   return (

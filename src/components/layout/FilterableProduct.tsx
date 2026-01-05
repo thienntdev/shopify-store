@@ -4,7 +4,7 @@ import FilterableProductClient from "./FilterableProductClient";
 import { getCollectionProducts } from "@/libs/shopify";
 
 interface FilterableProductProps {
-  categories: { handle: string }[]; // Mỗi handle là một collection handle
+  categories: { handle: string; title: string }[]; // Mỗi handle là một collection handle
   backgroundColor?: string;
   showMoreButtonText?: string;
 }

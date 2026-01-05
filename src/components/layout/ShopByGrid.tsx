@@ -89,7 +89,9 @@ export default async function ShopByGrid({
             >
               <div
                 className={`relative ${
-                  shape === "circle" ? "w-32 h-32" : "w-full aspect-square"
+                  shape === "circle"
+                    ? "w-full aspect-square max-w-[340px] mx-auto"
+                    : "w-full aspect-square max-w-[340px] mx-auto"
                 } ${imageShapeClass} overflow-hidden bg-gray-100 flex items-center justify-center group-hover:bg-gray-50 transition-colors`}
               >
                 <Image
@@ -99,12 +101,12 @@ export default async function ShopByGrid({
                   className={`object-cover ${imageShapeClass} ${imageClassName}`}
                   sizes={
                     shape === "circle"
-                      ? "256px"
+                      ? "100vw"
                       : "(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
                   }
                 />
               </div>
-              <span className="text-sm font-medium text-gray-700 text-center">
+              <span className="text-2xl font-medium text-gray-700 text-center">
                 {item.name}
               </span>
             </Link>

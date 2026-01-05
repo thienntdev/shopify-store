@@ -35,14 +35,16 @@ export default async function HeroBanner({
     subtitle = collection?.description || "";
     buttonHref = `/collections/${collectionHandle}`;
   }
-  
+
   return (
     <section className={`py-8 ${backgroundColor}`}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Image Section */}
           <div className={`relative ${reverse ? "lg:order-1" : "lg:order-2"}`}>
-            <div className={`relative w-4/5 h-64 md:h-80 rounded-lg overflow-hidden shadow-lg mx-auto lg:mx-0`}>
+            <div
+              className={`relative w-4/5 h-64 md:h-80 rounded-lg overflow-hidden shadow-lg mx-auto lg:mx-0`}
+            >
               <Image
                 src={image}
                 alt={imageAlt}
@@ -66,7 +68,7 @@ export default async function HeroBanner({
               {title}
             </h1>
             <p
-              className={`text-lg md:text-xl mb-8 max-w-md mx-auto lg:mx-0 ${subtitleColor}`}
+              className={`text-xl md:text-xl mb-8 max-w-md mx-auto lg:mx-0 ${subtitleColor}`}
             >
               {subtitle}
             </p>

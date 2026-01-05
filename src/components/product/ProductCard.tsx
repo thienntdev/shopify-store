@@ -1,3 +1,5 @@
+/** @format */
+
 // src/components/ProductCard.tsx
 /** @format */
 
@@ -12,7 +14,6 @@ interface ProductCardProps {
   badgeText?: string; // Custom badge text
 }
 
-
 // Helper function để extract product ID
 function extractProductId(gid: string): string {
   return gid.replace("gid://shopify/Product/", "");
@@ -25,25 +26,40 @@ export default function ProductCard({
 }: ProductCardProps) {
   // Extract values từ product
   const productId = extractProductId(product.id);
-  const minPrice = parseFloat(product.priceRange?.minVariantPrice?.amount || "0");
-  const maxPrice = parseFloat(product.priceRange?.maxVariantPrice?.amount || "0");
-  const currencyCode = product.priceRange?.minVariantPrice?.currencyCode || "USD";
-  
+  const minPrice = parseFloat(
+    product.priceRange?.minVariantPrice?.amount || "0"
+  );
+  const maxPrice = parseFloat(
+    product.priceRange?.maxVariantPrice?.amount || "0"
+  );
+  const currencyCode =
+    product.priceRange?.minVariantPrice?.currencyCode || "USD";
+
   // Tính toán giá và discount
   const price = minPrice;
   const originalPrice = maxPrice > minPrice ? maxPrice : undefined;
   const discountPercentage = originalPrice
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
-  
+
   // Lấy image
   const image = product.featuredImage?.url || product.images?.[0]?.url || "";
   const imageAlt = product.featuredImage?.altText || product.title;
-  
+
   // Badge logic: ưu tiên badgeText, sau đó check tags, sau đó check discount
-  const shouldShowBadge = showBadge && (badgeText || product.tags?.includes("new") || product.tags?.includes("sale"));
-  const badge = badgeText || (product.tags?.includes("new") ? "New" : product.tags?.includes("sale") ? "Sale" : undefined);
-  
+  const shouldShowBadge =
+    showBadge &&
+    (badgeText ||
+      product.tags?.includes("new") ||
+      product.tags?.includes("sale"));
+  const badge =
+    badgeText ||
+    (product.tags?.includes("new")
+      ? "New"
+      : product.tags?.includes("sale")
+      ? "Sale"
+      : undefined);
+
   // Rating và reviewCount (Shopify không có, có thể lấy từ reviews app hoặc hardcode)
   const rating = 4.5; // TODO: Lấy từ reviews app
   const reviewCount = 0; // TODO: Lấy từ reviews app
@@ -84,7 +100,7 @@ export default function ProductCard({
 
         {/* Product Info */}
         <div className="p-4">
-          <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors min-h-10">
+          <h3 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors min-h-10">
             {product.title}
           </h3>
 
@@ -96,7 +112,9 @@ export default function ProductCard({
                   <svg
                     key={i}
                     className={`w-4 h-4 ${
-                      i < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"
+                      i < Math.floor(rating)
+                        ? "text-yellow-400"
+                        : "text-gray-300"
                     }`}
                     fill="currentColor"
                     viewBox="0 0 20 20"

@@ -8,20 +8,20 @@ import TrendingNow from "@/components/layout/TrendingNow";
 import HappyCustomers from "@/components/HappyCustomers";
 
 const wearableCategories = [
-  { handle: "wearable-blanket" },
-  { handle: "blanket" },
-  { handle: "shirt" },
-  { handle: "hoodie" },
-  { handle: "sweatshirt" },
-  { handle: "fleece-scarf" },
+  { handle: "wearable-blanket", title: "Wearable Blanket" },
+  { handle: "blanket", title: "Blanket" },
+  { handle: "shirt", title: "Shirt" },
+  { handle: "hoodie", title: "Hoodie" },
+  { handle: "sweatshirt", title: "Sweatshirt" },
+  { handle: "fleece-scarf", title: "Fleece Scarf" },
 ];
 
 const leggingsCategories = [
-  { handle: "leggings" },
-  { handle: "jewelry-dish" },
-  { handle: "mug" },
-  { handle: "bottle-lamp" },
-  { handle: "suncatcher" },
+  { handle: "leggings", title: "Leggings" },
+  { handle: "jewelry-dish", title: "Jewelry Dish" },
+  { handle: "mug", title: "Mug" },
+  { handle: "bottle-lamp", title: "Bottle Lamp" },
+  { handle: "suncatcher", title: "Suncatcher" },
 ];
 
 export default function Home() {
