@@ -345,6 +345,7 @@ export default function NavigationMenu() {
 
   const handleMouseLeave = useCallback(
     (itemName: string, liElement: HTMLLIElement | null) => {
+      console.log("TimeoutRef");
       // Clear timeout hiện tại nếu có
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
@@ -443,7 +444,7 @@ export default function NavigationMenu() {
   return (
     <Fragment>
       <nav className="mt-4 border-t border-gray-200">
-        <ul ref={ulRef} className="flex items-center justify-center gap-6 py-3">
+        <ul ref={ulRef} className="flex items-center justify-center gap-6 pt-4">
           {navigationItems.map((item) => (
             <li
               key={item.name}
@@ -464,7 +465,7 @@ export default function NavigationMenu() {
             >
               <Link
                 href={item.href}
-                className={`text-sm font-medium hover:text-orange-500 transition-colors ${
+                className={`lg:text-lg md:text-sm font-medium hover:text-orange-500 transition-colors ${
                   item.color || "text-gray-700"
                 }`}
               >
@@ -507,7 +508,7 @@ export default function NavigationMenu() {
                         {section.href ? (
                           <Link
                             href={section.href}
-                            className="font-semibold mb-3 text-gray-900 hover:text-orange-500 transition-colors block"
+                            className="font-semibold text-lg mb-3 text-gray-900 hover:text-orange-500 transition-colors block uppercase"
                           >
                             {section.title}
                           </Link>
@@ -516,7 +517,7 @@ export default function NavigationMenu() {
                             {section.title}
                           </h3>
                         )}
-                        <ul className="space-y-1.5 text-sm text-gray-600">
+                        <ul className="space-y-1.5 text-lg text-gray-600">
                           {section.links.map((link, linkIndex) => (
                             <li key={linkIndex}>
                               <Link
