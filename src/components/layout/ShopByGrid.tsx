@@ -101,7 +101,7 @@ export default async function ShopByGrid({
                   className={`object-cover ${imageShapeClass} ${imageClassName}`}
                   sizes={
                     shape === "circle"
-                      ? "100vw"
+                      ? "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       : "(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
                   }
                 />

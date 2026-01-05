@@ -50,7 +50,7 @@ export default async function HeroBanner({
                 alt={imageAlt}
                 fill
                 className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                // sizes="(max-width: 768px) 100vw, 50vw"
                 unoptimized={image.includes("cdn.shopify.com")}
               />
             </div>
