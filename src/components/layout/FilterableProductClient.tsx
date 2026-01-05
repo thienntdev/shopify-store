@@ -4,7 +4,7 @@
 
 import { useState, useTransition, useRef } from "react";
 import ProductCard from "../product/ProductCard";
-import CollectionButton from "../ui/button/CollectionButton";
+import CollectionButton from "../ui/nav/CollectionButton";
 import { Product } from "@/libs/shopify/types";
 import { getProductsByCollection } from "../actions";
 

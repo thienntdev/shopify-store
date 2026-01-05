@@ -4,7 +4,7 @@
 /** @format */
 
 import ProductCard from "../product/ProductCard";
-import CollectionButton from "../ui/button/CollectionButton";
+import CollectionButton from "../ui/nav/CollectionButton";
 import { getCollectionProducts } from "@/libs/shopify";
 
 interface TrendingNowSectionProps {

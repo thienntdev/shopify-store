@@ -1,7 +1,7 @@
 /** @format */
 
 import Image from "next/image";
-import CollectionButton from "@/components/ui/button/CollectionButton";
+import CollectionButton from "@/components/ui/nav/CollectionButton";
 import { getCollectionByHandle } from "@/libs/shopify";
 
 interface HeroBannerProps {

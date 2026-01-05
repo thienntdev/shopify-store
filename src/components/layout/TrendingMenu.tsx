@@ -2,7 +2,7 @@
 
 import { getMenu } from "@/libs/shopify";
 import { transformShopifyImageUrl } from "@/utils/image";
-import CategoryIcon from "../ui/icon/CategoryIcon";
+import CategoryIcon from "../ui/nav/CategoryIcon";
 
 export interface TrendingCategory {
   name: string;
