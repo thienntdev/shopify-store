@@ -43,13 +43,13 @@ export default async function HeroBanner({
           {/* Image Section */}
           <div className={`relative ${reverse ? "lg:order-1" : "lg:order-2"}`}>
             <div
-              className={`relative w-4/5 h-64 md:h-80 rounded-lg overflow-hidden shadow-lg mx-auto lg:mx-0`}
+              className={`relative w-4/5 h-64 md:h-80 rounded-lg overflow-hidden shadow-lg ${reverse ? "mr-auto" : "ml-auto"}`}
             >
               <Image
                 src={image}
                 alt={imageAlt}
                 fill
-                className="object-cover"
+                className="object-cover right-0"
                 // sizes="(max-width: 768px) 100vw, 50vw"
                 unoptimized={image.includes("cdn.shopify.com")}
               />
@@ -58,7 +58,7 @@ export default async function HeroBanner({
 
           {/* Text Content Section */}
           <div
-            className={`text-center lg:text-left ${
+            className={`text-center ${
               reverse ? "lg:order-2" : "lg:order-1"
             }`}
           >
@@ -68,7 +68,7 @@ export default async function HeroBanner({
               {title}
             </h1>
             <p
-              className={`text-xl md:text-xl mb-8 max-w-md mx-auto lg:mx-0 ${subtitleColor}`}
+              className={`text-xl md:text-xl mb-8 max-w-md mx-auto ${subtitleColor}`}
             >
               {subtitle}
             </p>

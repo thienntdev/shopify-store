@@ -45,7 +45,7 @@ export default function Home() {
         backgroundColor="bg-linear-to-r from-blue-50 via-cyan-50 to-white"
         titleColor="text-red-600"
         subtitleColor="text-blue-800"
-        reverse={false}
+        reverse={true}
       />
 
       <FilterableProductSection categories={wearableCategories} />
