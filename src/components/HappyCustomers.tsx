@@ -20,7 +20,7 @@ interface HappyCustomersProps {
 
 export default function HappyCustomers({
   title = "Happy Customers",
-  subtitle = "Unwrap Happiness with Every Gift. Join the Macorner Family of Delighted Shoppers!",
+  subtitle = "Unwrap Happiness with Every Gift. Join the Paw Zeno Family of Delighted Shoppers!",
   buttonText = "Show More",
   buttonHref,
   topRowImages = [

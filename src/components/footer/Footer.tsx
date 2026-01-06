@@ -15,9 +15,9 @@ export default function Footer() {
         <div className="container mx-auto px-4">
           {/* Mobile Layout */}
           <div className="md:hidden space-y-0">
-            {/* Macorner - First */}
+            {/* Paw Zeno - First */}
             <FooterSection
-              title="Macorner"
+              title="Paw Zeno"
               links={[
                 { label: "About Us", href: "/about-us" },
                 { label: "Privacy Policy", href: "/policies/privacy" },
@@ -197,7 +197,7 @@ export default function Footer() {
             {/* Column 2: Macorner */}
             <div>
               <FooterSection
-                title="Macorner"
+                title="Paw Zeno"
                 links={[
                   { label: "About Us", href: "/about-us" },
                   {
