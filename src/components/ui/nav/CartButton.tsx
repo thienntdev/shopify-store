@@ -6,7 +6,7 @@ export default function CartButton() {
   return (
     <Link href="/cart" className="relative cursor-pointer">
       <svg
-        className="w-6 h-6 text-gray-500"
+        className="w-6 h-6 text-gray-700"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

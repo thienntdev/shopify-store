@@ -7,9 +7,13 @@
  * @returns Formatted money
  */
 export function formatMoney(amount: string, currencyCode: string): string {
-    const numAmount = parseFloat(amount);
-    return new Intl.NumberFormat("en-US", {
+  const numAmount = parseFloat(amount);
+  return (
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currencyCode,
-    }).format(numAmount);
+    }).format(numAmount) +
+    " " +
+    currencyCode
+  );
 }

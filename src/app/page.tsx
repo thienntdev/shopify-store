@@ -65,14 +65,14 @@ export default function Home() {
         title="Shop By Recipient"
         menuHandle="shop-by-recipient"
         shape="circle"
-        columns={{ mobile: 2, tablet: 4, desktop: 4 }}
+        columns={{ mobile: 2, tablet: 2, desktop: 4 }}
       />
 
       <ShopByGrid
         title="Shop By Product"
         menuHandle="shop-by-recipient"
         shape="square"
-        columns={{ mobile: 2, tablet: 3, desktop: 4 }}
+        columns={{ mobile: 2, tablet: 2, desktop: 4 }}
       />
 
       {/* <HappyCustomers /> */}

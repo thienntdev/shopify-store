@@ -43,7 +43,9 @@ export default async function HeroBanner({
           {/* Image Section */}
           <div className={`relative ${reverse ? "lg:order-1" : "lg:order-2"}`}>
             <div
-              className={`relative w-4/5 h-64 md:h-80 rounded-lg overflow-hidden shadow-lg ${reverse ? "mr-auto" : "ml-auto"}`}
+              className={`relative w-4/5 h-64 md:h-80 rounded-lg overflow-hidden shadow-lg mx-auto ${
+                reverse ? "xl:mr-auto" : "xl:ml-auto"
+              }`}
             >
               <Image
                 src={image}
@@ -58,9 +60,7 @@ export default async function HeroBanner({
 
           {/* Text Content Section */}
           <div
-            className={`text-center ${
-              reverse ? "lg:order-2" : "lg:order-1"
-            }`}
+            className={`text-center ${reverse ? "lg:order-2" : "lg:order-1"}`}
           >
             <h1
               className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-4 ${titleColor}`}

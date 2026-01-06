@@ -106,7 +106,7 @@ export default async function ShopByGrid({
                   }
                 />
               </div>
-              <span className="text-2xl font-medium text-gray-700 text-center">
+              <span className="text-lg sm:text-xl lg:text-xl font-medium text-gray-700 text-center">
                 {item.name}
               </span>
             </Link>

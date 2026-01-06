@@ -6,7 +6,7 @@ export default function TrackOrder() {
   return (
     <Link
       href="/track-order"
-      className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-orange-500 hover:text-white transition-colors"
+      className="flex items-center gap-2 px-2 py-2 text-gray-700 rounded-lg hover:bg-orange-500 hover:text-white transition-colors"
     >
       <svg
         className="w-5 h-5"
@@ -31,4 +31,3 @@ export default function TrackOrder() {
     </Link>
   );
 }
-

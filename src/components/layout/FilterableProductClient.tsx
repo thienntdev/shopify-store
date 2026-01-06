@@ -21,7 +21,11 @@ function CategoryFilter({
   onCategoryChange,
 }: CategoryFilterProps) {
   return (
-    <div className="flex items-center gap-4 flex-wrap justify-center">
+    <div
+      className="flex items-center gap-4 flex-wrap justify-center 
+                    max-lg:flex-nowrap max-lg:overflow-x-auto max-lg:justify-start 
+                    max-lg:pb-2 max-lg:-mx-4 max-lg:px-4 scrollbar-hide"
+    >
       {categories.map((category) => {
         const isActive = activeCategory === category.handle;
 
@@ -29,7 +33,7 @@ function CategoryFilter({
           <button
             key={category.handle}
             onClick={() => onCategoryChange(category.handle)}
-            className={`cursor-pointer px-4 py-2 rounded-lg font-medium text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`cursor-pointer px-4 py-2 rounded-lg font-medium text-sm lg:text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${
               isActive
                 ? "bg-orange-500 text-white border-2 border-orange-500"
                 : "bg-white text-gray-700 border-2 border-gray-300 hover:border-orange-500 hover:text-orange-500"
@@ -115,7 +119,7 @@ export default function FilterableProductClient({
             <p className="text-gray-500">Loading products...</p>
           </div>
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

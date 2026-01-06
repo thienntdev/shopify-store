@@ -37,7 +37,7 @@ export default async function TrendingNow({
         <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
           {title}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} showBadge={true} />
           ))}
