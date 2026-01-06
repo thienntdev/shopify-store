@@ -83,13 +83,11 @@ export default function FilterableProductClient({
 
     if (cachedProducts) {
       // Nếu có trong cache thì dùng luôn, không cần fetch
-      console.log("useCache");
       setActiveCategory(categoryHandle);
       setProducts(cachedProducts);
     } else {
       // Nếu chưa có trong cache thì fetch và lưu vào cache
       setActiveCategory(categoryHandle);
-      console.log("not useCache");
 
       startTransition(async () => {
         const newProducts = await getProductsByCollection(categoryHandle);

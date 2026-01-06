@@ -54,7 +54,6 @@ export default function NavigationMenu() {
 
   const handleMouseLeave = useCallback(
     (itemName: string, liElement: HTMLLIElement | null) => {
-      console.log("TimeoutRef");
       // Clear timeout hiện tại nếu có
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
