@@ -406,6 +406,10 @@ export default function CollectionsClient({
         onOccasionChange={handleOccasionChange}
         onRecipientChange={handleRecipientChange}
         onPriceChange={handlePriceChange}
+        onApply={() => {
+          // Reset to page 1 when filters are applied
+          updateURL({ page: 1 });
+        }}
       />
     </div>
   );
