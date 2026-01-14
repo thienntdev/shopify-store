@@ -7,6 +7,9 @@ import TrendingMenu from "@/components/layout/TrendingMenu";
 import TrendingNow from "@/components/layout/TrendingNow";
 import HappyCustomers from "@/components/HappyCustomers";
 
+// Force dynamic rendering to avoid build-time API calls
+export const dynamic = "force-dynamic";
+
 const wearableCategories = [
   { handle: "wearable-blanket", title: "Wearable Blanket" },
   { handle: "blanket", title: "Blanket" },

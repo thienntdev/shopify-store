@@ -154,46 +154,52 @@ function reshapeProducts(products: ShopifyProduct[]) {
 }
 
 export async function getMenu(handle: string): Promise<Menu[]> {
-  const res = await shopifyFetch<ShopifyMenuOperation>({
-    cache: "force-cache",
-    query: getMenuQuery,
-    tags: [TAGS.collections],
-    variables: {
-      handle,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyMenuOperation>({
+      cache: "force-cache",
+      query: getMenuQuery,
+      tags: [TAGS.collections],
+      variables: {
+        handle,
+      },
+    });
 
-  return (
-    res.body?.data?.menu?.items.map(
-      (item: {
-        title: string;
-        url: string;
-        resource?: {
-          id: string;
-          image?: {
-            url: string;
-            altText?: string;
-            width?: number;
-            height?: number;
+    return (
+      res.body?.data?.menu?.items.map(
+        (item: {
+          title: string;
+          url: string;
+          resource?: {
+            id: string;
+            image?: {
+              url: string;
+              altText?: string;
+              width?: number;
+              height?: number;
+            };
           };
-        };
-      }) => ({
-        title: item.title,
-        path: item.url
-          .replace(domain, "")
-          .replace("/collections/", "/search")
-          .replace("/pages", ""),
-        ...(item.resource?.image && {
-          image: {
-            url: item.resource.image.url,
-            altText: item.resource.image.altText,
-            width: item.resource.image.width,
-            height: item.resource.image.height,
-          },
-        }),
-      })
-    ) || []
-  );
+        }) => ({
+          title: item.title,
+          path: item.url
+            .replace(domain, "")
+            .replace("/collections/", "/search")
+            .replace("/pages", ""),
+          ...(item.resource?.image && {
+            image: {
+              url: item.resource.image.url,
+              altText: item.resource.image.altText,
+              width: item.resource.image.width,
+              height: item.resource.image.height,
+            },
+          }),
+        })
+      ) || []
+    );
+  } catch (error) {
+    console.error(`Error fetching menu "${handle}":`, error);
+    // Return empty array on error to prevent build failures
+    return [];
+  }
 }
 
 export async function getCollectionProducts({
