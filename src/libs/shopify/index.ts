@@ -16,8 +16,10 @@ import { getProductsQuery } from "./queries/product";
 import { isShopifyError } from "./queries/type-guard";
 import {
   Connection,
+  ConnectionWithPageInfo,
   Image,
   Menu,
+  PageInfo,
   Product,
   ShopifyCollection,
   ShopifyCollectionOperation,
@@ -90,6 +92,16 @@ export async function shopifyFetch<T>({
 
 function removeEdgesAndNodes<T>(array: Connection<T>): T[] {
   return array.edges.map((edge) => edge?.node);
+}
+
+function removeEdgesAndNodesWithCursor<T>(array: ConnectionWithPageInfo<T>): {
+  nodes: T[];
+  pageInfo: PageInfo;
+} {
+  return {
+    nodes: array.edges.map((edge) => edge?.node),
+    pageInfo: array.pageInfo,
+  };
 }
 
 function reshapeImages(images: Connection<Image>, productTitle: string) {
@@ -214,6 +226,49 @@ export async function getCollectionProducts({
   return reshapeProducts(
     removeEdgesAndNodes(res.body.data.collection.products)
   );
+}
+
+export async function getCollectionProductsWithPagination({
+  collection,
+  reverse,
+  sortKey,
+  first = 24,
+  after,
+}: {
+  collection: string;
+  reverse?: boolean;
+  sortKey?: string;
+  first?: number;
+  after?: string;
+}): Promise<{ products: Product[]; pageInfo: PageInfo }> {
+  const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
+    query: getCollectionProductsQuery,
+    tags: [TAGS.collections, TAGS.products],
+    variables: {
+      handle: collection,
+      reverse,
+      sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
+      first,
+      after,
+    },
+  });
+
+  if (!res.body.data.collection) {
+    console.log(`No collection found for \`${collection}\``);
+    return {
+      products: [],
+      pageInfo: { hasNextPage: false, hasPreviousPage: false },
+    };
+  }
+
+  const { nodes, pageInfo } = removeEdgesAndNodesWithCursor(
+    res.body.data.collection.products
+  );
+
+  return {
+    products: reshapeProducts(nodes),
+    pageInfo,
+  };
 }
 
 export async function getCollectionByHandle(

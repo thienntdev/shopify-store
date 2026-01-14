@@ -151,10 +151,22 @@ export type Product = Omit<ShopifyProduct, "variants" | "images"> & {
     images: Image[];
 };
 
+export type PageInfo = {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor?: string;
+  endCursor?: string;
+};
+
+export type ConnectionWithPageInfo<T> = {
+  edges: Array<Edge<T> & { cursor: string }>;
+  pageInfo: PageInfo;
+};
+
 export type ShopifyCollectionProductsOperation = {
     data: {
       collection: {
-        products: Connection<ShopifyProduct>;
+        products: ConnectionWithPageInfo<ShopifyProduct>;
       };
     };
     variables: {
@@ -162,5 +174,6 @@ export type ShopifyCollectionProductsOperation = {
       reverse?: boolean;
       sortKey?: string;
       first?: number;
+      after?: string;
     };
 };

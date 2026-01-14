@@ -1,6 +1,7 @@
-import { collectionFragment } from "../fragments/collection"
-import { productFragment } from "../fragments/product";
+/** @format */
 
+import { collectionFragment } from "../fragments/collection";
+import { productFragment } from "../fragments/product";
 
 export const getCollectionQuery = /* GraphQL */ `
   query getCollection($handle: String!) {
@@ -29,14 +30,27 @@ export const getCollectionProductsQuery = /* GraphQL */ `
     $handle: String!
     $sortKey: ProductCollectionSortKeys
     $reverse: Boolean
-    $first: Int = 250
+    $first: Int = 24
+    $after: String
   ) {
     collection(handle: $handle) {
-      products(sortKey: $sortKey, reverse: $reverse, first: $first) {
+      products(
+        sortKey: $sortKey
+        reverse: $reverse
+        first: $first
+        after: $after
+      ) {
         edges {
           node {
             ...product
           }
+          cursor
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
         }
       }
     }
