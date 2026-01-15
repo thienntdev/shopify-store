@@ -6,7 +6,6 @@ import NavigationMenu from "./NavigationMenu";
 import TrackOrder from "../ui/nav/TrackOrder";
 import CartButton from "../ui/nav/CartButton";
 import WishlistButton from "../ui/nav/WishlistButton";
-import SearchIcon from "../ui/nav/SearchIcon";
 import MobileMenuButton from "../ui/nav/MobileMenuButton";
 import CountrySelector from "../ui/nav/CountrySelector";
 import Logo from "../ui/Logo";
@@ -15,7 +14,6 @@ import MobileSearchBar from "./MobileSearchBar";
 export default async function Header() {
   return (
     <header className="bg-white sticky top-0 z-50 shadow-sm">
-      {/* Promotional Banner */}
       <PromotionBanner />
 
       {/* Main Header */}

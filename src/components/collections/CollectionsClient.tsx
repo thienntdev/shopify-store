@@ -20,6 +20,7 @@ import Pagination from "./Pagination";
 import MobileFilterModal from "./MobileFilterModal";
 import { getFilteredCollectionProducts, CollectionFilters } from "./actions";
 import { usePriceFilter } from "@/hooks/usePriceFilter";
+import BreadCrumbs from "../ui/nav/BreadCrumbs";
 
 interface CollectionsClientProps {
   initialProducts: Product[];
@@ -337,14 +338,13 @@ export default function CollectionsClient({
   };
 
   const handleClearAll = () => {
-    setState({
-      sortBy: "BEST_SELLING",
-      viewMode: "grid",
+    setState((prev) => ({
+      ...prev,
       page: 1,
       selectedOccasions: [],
       selectedRecipients: [],
       priceFilter: { min: priceRange.min, max: priceRange.max },
-    });
+    }));
     handlePriceRangeChange(priceRange);
     // Update URL without triggering navigation
     if (typeof window !== "undefined") {
@@ -404,18 +404,7 @@ export default function CollectionsClient({
 
   return (
     <div className="container mx-auto px-4 py-8 bg-white min-h-screen">
-      {/* Breadcrumbs */}
-      <nav className="mb-4 text-sm text-gray-600">
-        <a href="/" className="hover:text-orange-500">
-          Home
-        </a>
-        <span className="mx-2">/</span>
-        <a href="/collections" className="hover:text-orange-500">
-          Collections
-        </a>
-        <span className="mx-2">/</span>
-        <span className="text-gray-900 capitalize">{collectionHandle}</span>
-      </nav>
+      <BreadCrumbs> {collectionHandle} </BreadCrumbs>
 
       {/* Mobile Header with Filter Button */}
       <div className="lg:hidden flex items-center justify-between mb-4">
@@ -436,10 +425,10 @@ export default function CollectionsClient({
               d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
             />
           </svg>
-          <span>Filter & Sort</span>
+          <span>Filters</span>
         </button>
         <p className="text-sm font-medium text-gray-700">
-          {currentTotalCount} RESULTS
+          {currentTotalCount} products
         </p>
       </div>
 
@@ -448,7 +437,7 @@ export default function CollectionsClient({
         {collectionHandle.replace(/-/g, " ")}
       </h1>
       <p className="text-gray-600 mb-6 hidden lg:block">
-        Showing {currentTotalCount} unique designs
+        Showing {currentTotalCount} unique products
       </p>
 
       {/* Main Content */}

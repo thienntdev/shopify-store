@@ -288,16 +288,6 @@ export default function FilterSidebar({
             </div>
           )}
         </div>
-
-        {/* Custom Bulk Order Section */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 lg:p-4 mt-4 lg:mt-6">
-          <p className="text-xs lg:text-sm text-gray-700 mb-2 lg:mb-3">
-            Custom bulk order? Perfect for events and pet shops.
-          </p>
-          <button className="w-full bg-orange-500 text-white py-1.5 lg:py-2 px-3 lg:px-4 rounded-md font-semibold text-xs lg:text-sm hover:bg-orange-600 transition-colors">
-            CONTACT SALES
-          </button>
-        </div>
       </div>
     </aside>
   );

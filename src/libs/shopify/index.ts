@@ -282,7 +282,10 @@ export async function getCollectionProductsWithPagination({
       pageInfo,
     };
   } catch (error) {
-    console.error(`Error fetching collection products with pagination "${collection}":`, error);
+    console.error(
+      `Error fetching collection products with pagination "${collection}":`,
+      error
+    );
     return {
       products: [],
       pageInfo: { hasNextPage: false, hasPreviousPage: false },
