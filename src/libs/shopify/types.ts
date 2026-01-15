@@ -70,7 +70,6 @@ export type ShopifyCollectionOperation = {
         title: string;
         description: string;
       };
-      productsCount?: number;
     };
   };
   variables: {
@@ -86,7 +85,6 @@ export type ShopifyCollection = {
     title: string;
     description: string;
   };
-  productsCount?: number;
 };
 
 export type ShopifyProductOperation = {

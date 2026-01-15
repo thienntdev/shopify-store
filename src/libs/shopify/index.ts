@@ -280,39 +280,41 @@ export async function getCollectionProductsWithPagination({
 export async function getCollectionByHandle(
   handle: string
 ): Promise<ShopifyCollection | null> {
-  const res = await shopifyFetch<ShopifyCollectionOperation>({
-    query: getCollectionQuery,
-    tags: [TAGS.collections],
-    variables: { handle },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyCollectionOperation>({
+      query: getCollectionQuery,
+      tags: [TAGS.collections],
+      variables: { handle },
+    });
 
-  const collection = res.body?.data?.collection;
+    const collection = res.body?.data?.collection;
 
-  if (!collection) {
-    return null;
+    if (!collection) {
+      return null;
+    }
+
+    return {
+      title: collection.title,
+      description: collection.description || "",
+      ...(collection.image && {
+        image: {
+          url: collection.image.url,
+          altText: collection.image.altText || "",
+          width: collection.image.width || 0,
+          height: collection.image.height || 0,
+        },
+      }),
+      ...(collection.seo && {
+        seo: {
+          title: collection.seo.title || "",
+          description: collection.seo.description || "",
+        },
+      }),
+    } as ShopifyCollection;
+  } catch (error) {
+    console.error(`Error fetching collection ${handle}:`, error);
+    return null; // Return null on error to prevent build crash
   }
-
-  return {
-    title: collection.title,
-    description: collection.description || "",
-    ...(collection.image && {
-      image: {
-        url: collection.image.url,
-        altText: collection.image.altText || "",
-        width: collection.image.width || 0,
-        height: collection.image.height || 0,
-      },
-    }),
-    ...(collection.seo && {
-      seo: {
-        title: collection.seo.title || "",
-        description: collection.seo.description || "",
-      },
-    }),
-    ...(collection.productsCount !== undefined && {
-      productsCount: collection.productsCount,
-    }),
-  } as ShopifyCollection;
 }
 
 export async function getProducts({
