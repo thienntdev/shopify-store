@@ -2,8 +2,15 @@
 
 "use client";
 
-import { useState, useEffect, useTransition, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useState,
+  useEffect,
+  useTransition,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
+import { useSearchParams } from "next/navigation";
 import { Product } from "@/libs/shopify/types";
 import ProductCard from "../product/ProductCard";
 import FilterSidebar, { FilterOption } from "./FilterSidebar";
@@ -12,6 +19,7 @@ import SortAndView, { SortOption, ViewMode } from "./SortAndView";
 import Pagination from "./Pagination";
 import MobileFilterModal from "./MobileFilterModal";
 import { getFilteredCollectionProducts, CollectionFilters } from "./actions";
+import { usePriceFilter } from "@/hooks/usePriceFilter";
 
 interface CollectionsClientProps {
   initialProducts: Product[];
@@ -30,7 +38,6 @@ export default function CollectionsClient({
   recipients,
   priceRange,
 }: CollectionsClientProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -38,7 +45,7 @@ export default function CollectionsClient({
   // Get initial state from URL params
   const getInitialState = () => {
     const sortBy = (searchParams.get("sort") as SortOption) || "BEST_SELLING";
-    const viewMode = (searchParams.get("view") as ViewMode) || "grid";
+    const viewMode = "grid"; // Always default to grid
     const page = parseInt(searchParams.get("page") || "1", 10);
     const occasion = searchParams.get("occasion") || "";
     const recipient = searchParams.get("recipient") || "";
@@ -51,7 +58,7 @@ export default function CollectionsClient({
 
     return {
       sortBy,
-      viewMode,
+      viewMode: viewMode as ViewMode,
       page,
       selectedOccasions: occasion ? [occasion] : [],
       selectedRecipients: recipient ? [recipient] : [],
@@ -62,10 +69,16 @@ export default function CollectionsClient({
   const [state, setState] = useState(getInitialState());
   const [products, setProducts] = useState(initialProducts);
   const [currentTotalCount, setCurrentTotalCount] = useState(totalCount);
+  const [previousProducts, setPreviousProducts] = useState<Product[]>([]); // Keep previous data while loading
 
-  // Update URL params
+  // Ref to track if we're updating URL from internal state (to avoid triggering useEffect from URL changes)
+  const isInternalUpdateRef = useRef(false);
+
+  // Update URL params without triggering navigation
   const updateURL = useCallback(
     (updates: Partial<typeof state>) => {
+      isInternalUpdateRef.current = true; // Mark as internal update
+
       const params = new URLSearchParams(searchParams.toString());
 
       if (updates.sortBy) params.set("sort", updates.sortBy);
@@ -98,26 +111,120 @@ export default function CollectionsClient({
         }
       }
 
-      router.push(`/collections/${collectionHandle}?${params.toString()}`, {
-        scroll: false,
-      });
+      // Use window.history.replaceState to update URL without triggering Next.js navigation
+      // This prevents GET request, only POST from useEffect will be called
+      if (typeof window !== "undefined") {
+        const newUrl = `/collections/${collectionHandle}?${params.toString()}`;
+        window.history.replaceState(
+          { ...window.history.state, as: newUrl, url: newUrl },
+          "",
+          newUrl
+        );
+      }
+
+      // Reset flag after a short delay to allow URL to update
+      setTimeout(() => {
+        isInternalUpdateRef.current = false;
+      }, 0);
     },
-    [router, collectionHandle, searchParams, priceRange]
+    [collectionHandle, searchParams, priceRange]
   );
+
+  // Price filter with debounce (after updateURL is defined)
+  const {
+    localRange: priceFilter,
+    appliedRange: appliedPriceRange,
+    isPending: isPriceFilterPending,
+    handleRangeChange: handlePriceRangeChange,
+  } = usePriceFilter({
+    initialRange: getInitialState().priceFilter,
+    onApply: (range) => {
+      setState((prev) => ({
+        ...prev,
+        priceFilter: range,
+        page: 1,
+      }));
+      updateURL({ priceFilter: range, page: 1 });
+    },
+    debounceMs: 500,
+    requireExplicitApply: false,
+  });
+
+  // Wrapper to match FilterSidebar's expected signature
+  const handlePriceChange = useCallback(
+    (min: number, max: number) => {
+      handlePriceRangeChange({ min, max });
+    },
+    [handlePriceRangeChange]
+  );
+
+  // Ref to track previous filter values to prevent duplicate API calls
+  const previousFiltersRef = useRef<string>("");
+  const isFetchingRef = useRef(false);
+
+  // Initialize previousFiltersRef on mount to allow first API call
+  useEffect(() => {
+    if (previousFiltersRef.current === "") {
+      // Set to a dummy value to allow first fetch
+      previousFiltersRef.current = "__INIT__";
+    }
+  }, []);
 
   // Fetch products when filters/sort/page change
   useEffect(() => {
+    // Use state.priceFilter - it's updated synchronously in onApply callback
+    // This ensures we get the latest value that was actually applied
+    // appliedPriceRange from hook may not be updated yet due to async state updates
+    const currentPriceFilter = state.priceFilter;
+
+    // Build filter key to check if filters actually changed
+    const filterKey = JSON.stringify({
+      sortBy: state.sortBy,
+      page: state.page,
+      occasions: state.selectedOccasions,
+      recipients: state.selectedRecipients,
+      minPrice:
+        currentPriceFilter.min !== priceRange.min
+          ? currentPriceFilter.min
+          : undefined,
+      maxPrice:
+        currentPriceFilter.max !== priceRange.max
+          ? currentPriceFilter.max
+          : undefined,
+    });
+
+    // Skip if filters haven't changed
+    if (previousFiltersRef.current === filterKey) {
+      return;
+    }
+
+    // Update previous filter ref BEFORE setting isFetchingRef
+    // This ensures we track the new filter key immediately
+    previousFiltersRef.current = filterKey;
+
+    // Always allow new fetch when filter changes
+    // Reset fetching flag to allow new fetch
+    isFetchingRef.current = false;
+
+    // Set fetching flag for this request
+    isFetchingRef.current = true;
+
+    // Keep previous products visible while loading
+    if (products.length > 0) {
+      setPreviousProducts(products);
+    }
+
     startTransition(async () => {
       const filters: CollectionFilters = {
         occasions: state.selectedOccasions,
         recipients: state.selectedRecipients,
         minPrice:
-          state.priceFilter.min !== priceRange.min
-            ? state.priceFilter.min
+          currentPriceFilter.min !== priceRange.min
+            ? currentPriceFilter.min
             : undefined,
         maxPrice:
-          state.priceFilter.max !== priceRange.max
-            ? state.priceFilter.max
+          currentPriceFilter.max !== priceRange.max
+            ? currentPriceFilter.max
             : undefined,
       };
 
@@ -128,15 +235,41 @@ export default function CollectionsClient({
         filters,
       });
 
-      setProducts(result.products);
-      setCurrentTotalCount(result.totalCount);
+      // Double check filter key hasn't changed during fetch
+      // Use state.priceFilter to get the latest value
+      const currentFilterKey = JSON.stringify({
+        sortBy: state.sortBy,
+        page: state.page,
+        occasions: state.selectedOccasions,
+        recipients: state.selectedRecipients,
+        minPrice:
+          state.priceFilter.min !== priceRange.min
+            ? state.priceFilter.min
+            : undefined,
+        maxPrice:
+          state.priceFilter.max !== priceRange.max
+            ? state.priceFilter.max
+            : undefined,
+      });
+
+      // Only update if filter key still matches
+      if (currentFilterKey === filterKey) {
+        setProducts(result.products);
+        setCurrentTotalCount(result.totalCount);
+        setPreviousProducts([]); // Clear previous products after update
+      } else {
+        // If filter changed during fetch, update the ref to allow new fetch
+        previousFiltersRef.current = currentFilterKey;
+      }
+
+      isFetchingRef.current = false;
     });
   }, [
     state.sortBy,
     state.page,
     state.selectedOccasions,
     state.selectedRecipients,
-    state.priceFilter,
+    state.priceFilter, // Use state.priceFilter - updated synchronously in onApply
     collectionHandle,
     priceRange,
   ]);
@@ -146,10 +279,10 @@ export default function CollectionsClient({
     updateURL({ sortBy: sort, page: 1 });
   };
 
-  const handleViewChange = (view: ViewMode) => {
+  const handleViewChange = useCallback((view: ViewMode) => {
+    // View mode is only local UI state, no need to save to URL or localStorage
     setState((prev) => ({ ...prev, viewMode: view }));
-    updateURL({ viewMode: view });
-  };
+  }, []);
 
   const handleOccasionChange = (value: string) => {
     setState((prev) => ({
@@ -179,15 +312,6 @@ export default function CollectionsClient({
     });
   };
 
-  const handlePriceChange = (min: number, max: number) => {
-    setState((prev) => ({
-      ...prev,
-      priceFilter: { min, max },
-      page: 1,
-    }));
-    updateURL({ priceFilter: { min, max }, page: 1 });
-  };
-
   const handleRemoveFilter = (type: string, value: string) => {
     if (type === "occasion") {
       setState((prev) => ({
@@ -204,13 +328,9 @@ export default function CollectionsClient({
       }));
       updateURL({ selectedRecipients: [], page: 1 });
     } else if (type === "price") {
-      setState((prev) => ({
-        ...prev,
-        priceFilter: { min: priceRange.min, max: priceRange.max },
-        page: 1,
-      }));
+      handlePriceRangeChange(priceRange);
       updateURL({
-        priceFilter: { min: priceRange.min, max: priceRange.max },
+        priceFilter: priceRange,
         page: 1,
       });
     }
@@ -225,7 +345,19 @@ export default function CollectionsClient({
       selectedRecipients: [],
       priceFilter: { min: priceRange.min, max: priceRange.max },
     });
-    router.push(`/collections/${collectionHandle}`);
+    handlePriceRangeChange(priceRange);
+    // Update URL without triggering navigation
+    if (typeof window !== "undefined") {
+      window.history.replaceState(
+        {
+          ...window.history.state,
+          as: `/collections/${collectionHandle}`,
+          url: `/collections/${collectionHandle}`,
+        },
+        "",
+        `/collections/${collectionHandle}`
+      );
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -235,28 +367,38 @@ export default function CollectionsClient({
   };
 
   // Build active filters for QuickFilters component
-  const activeFilters = [
-    ...state.selectedOccasions.map((val) => ({
-      label: occasions.find((o) => o.value === val)?.label || val,
-      value: val,
-      type: "occasion",
-    })),
-    ...state.selectedRecipients.map((val) => ({
-      label: recipients.find((r) => r.value === val)?.label || val,
-      value: val,
-      type: "recipient",
-    })),
-    ...(state.priceFilter.min !== priceRange.min ||
-    state.priceFilter.max !== priceRange.max
-      ? [
-          {
-            label: `$${state.priceFilter.min} - $${state.priceFilter.max}`,
-            value: "price",
-            type: "price",
-          },
-        ]
-      : []),
-  ];
+  const activeFilters = useMemo(
+    () => [
+      ...state.selectedOccasions.map((val) => ({
+        label: occasions.find((o) => o.value === val)?.label || val,
+        value: val,
+        type: "occasion",
+      })),
+      ...state.selectedRecipients.map((val) => ({
+        label: recipients.find((r) => r.value === val)?.label || val,
+        value: val,
+        type: "recipient",
+      })),
+      ...(appliedPriceRange.min !== priceRange.min ||
+      appliedPriceRange.max !== priceRange.max
+        ? [
+            {
+              label: `$${appliedPriceRange.min} - $${appliedPriceRange.max}`,
+              value: "price",
+              type: "price",
+            },
+          ]
+        : []),
+    ],
+    [
+      state.selectedOccasions,
+      state.selectedRecipients,
+      appliedPriceRange,
+      priceRange,
+      occasions,
+      recipients,
+    ]
+  );
 
   const totalPages = Math.ceil(currentTotalCount / 16);
 
@@ -319,7 +461,7 @@ export default function CollectionsClient({
             priceRange={priceRange}
             selectedOccasions={state.selectedOccasions}
             selectedRecipients={state.selectedRecipients}
-            priceFilter={state.priceFilter}
+            priceFilter={priceFilter}
             onOccasionChange={handleOccasionChange}
             onRecipientChange={handleRecipientChange}
             onPriceChange={handlePriceChange}
@@ -343,42 +485,88 @@ export default function CollectionsClient({
             onClearAll={handleClearAll}
           />
 
-          {/* Loading State */}
-          {isPending && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Loading products...</p>
+          {/* Price filter loading indicator */}
+          {isPriceFilterPending && (
+            <div className="mb-4 text-sm text-gray-500">
+              Applying price filter...
             </div>
           )}
 
-          {/* Products Grid/List */}
-          {!isPending && products.length > 0 && (
-            <div
-              className={
-                state.viewMode === "grid"
-                  ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6"
-                  : "flex flex-col gap-6"
-              }
-            >
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  variant={state.viewMode === "list" ? "list" : "default"}
-                  showDescription={state.viewMode === "list"}
-                  showWishlist={true}
+          {/* Loading State - Initial Load with Skeleton */}
+          {isPending && products.length === 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-gray-200 animate-pulse rounded-lg aspect-square"
                 />
               ))}
             </div>
           )}
 
-          {/* Empty State */}
-          {!isPending && products.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">
-                No products found matching your filters.
-              </p>
-            </div>
+          {/* Products Grid/List */}
+          {!isPending && products.length > 0 && (
+            <>
+              {/* Subtle loading indicator during refetch */}
+              {isPending && previousProducts.length > 0 && (
+                <div className="mb-4 text-sm text-gray-500">
+                  Updating products...
+                </div>
+              )}
+
+              <div
+                className={
+                  state.viewMode === "grid"
+                    ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6"
+                    : "flex flex-col gap-6"
+                }
+              >
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    variant={state.viewMode === "list" ? "list" : "default"}
+                    showDescription={state.viewMode === "list"}
+                    showWishlist={true}
+                  />
+                ))}
+              </div>
+            </>
           )}
+
+          {/* Show previous products while loading new ones */}
+          {isPending &&
+            previousProducts.length > 0 &&
+            products.length === 0 && (
+              <div
+                className={
+                  state.viewMode === "grid"
+                    ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6 opacity-50"
+                    : "flex flex-col gap-6 opacity-50"
+                }
+              >
+                {previousProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    variant={state.viewMode === "list" ? "list" : "default"}
+                    showDescription={state.viewMode === "list"}
+                    showWishlist={true}
+                  />
+                ))}
+              </div>
+            )}
+
+          {/* Empty State */}
+          {!isPending &&
+            products.length === 0 &&
+            previousProducts.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">
+                  No products found matching your filters.
+                </p>
+              </div>
+            )}
 
           {/* Pagination */}
           {!isPending && products.length > 0 && totalPages > 1 && (

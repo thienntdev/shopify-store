@@ -2,13 +2,10 @@
 
 import FilterableProductSection from "@/components/layout/FilterableProduct";
 import HeroBanner from "@/components/layout/HeroBanner";
-import ShopByGrid, { ShopByItem } from "@/components/layout/ShopByGrid";
+import ShopByGrid from "@/components/layout/ShopByGrid";
 import TrendingMenu from "@/components/layout/TrendingMenu";
 import TrendingNow from "@/components/layout/TrendingNow";
 import HappyCustomers from "@/components/HappyCustomers";
-
-// Force dynamic rendering to avoid build-time API calls
-export const dynamic = "force-dynamic";
 
 const wearableCategories = [
   { handle: "wearable-blanket", title: "Wearable Blanket" },

@@ -218,7 +218,13 @@ export default async function CollectionPage({
   }
 
   // Calculate total count from filtered products
+  // If collection has productsCount, use it as base (but still need to filter)
+  // For now, we'll use filtered products length as it's more accurate with filters
+  // In the future, we could use collection.productsCount as a fallback
   const totalCount = filteredAllProducts.length;
+
+  // Note: collection.productsCount gives total products in collection without filters
+  // For accurate filtered count, we still need to filter the fetched products
 
   // Calculate pagination
   const pageSize = 16;

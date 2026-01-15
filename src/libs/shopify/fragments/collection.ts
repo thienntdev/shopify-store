@@ -1,3 +1,5 @@
+/** @format */
+
 import seoFragment from "./seo";
 import imageFragment from "./image";
 

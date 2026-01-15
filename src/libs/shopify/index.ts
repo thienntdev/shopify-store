@@ -309,6 +309,9 @@ export async function getCollectionByHandle(
         description: collection.seo.description || "",
       },
     }),
+    ...(collection.productsCount !== undefined && {
+      productsCount: collection.productsCount,
+    }),
   } as ShopifyCollection;
 }
 

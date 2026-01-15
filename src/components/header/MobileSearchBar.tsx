@@ -46,7 +46,10 @@ export default function MobileSearchBar() {
 
   return (
     <>
-      <SearchIcon onClick={() => setIsSearchOpen(!isSearchOpen)} />
+      <SearchIcon 
+        onClick={() => setIsSearchOpen(!isSearchOpen)} 
+        isOpen={isSearchOpen}
+      />
       {isSearchOpen && (
         <div
           ref={searchBarRef}
