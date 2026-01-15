@@ -213,25 +213,30 @@ export async function getCollectionProducts({
   sortKey?: string;
   first?: number;
 }): Promise<Product[]> {
-  const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
-    query: getCollectionProductsQuery,
-    tags: [TAGS.collections, TAGS.products],
-    variables: {
-      handle: collection,
-      reverse,
-      sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
-      first: first || undefined,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
+      query: getCollectionProductsQuery,
+      tags: [TAGS.collections, TAGS.products],
+      variables: {
+        handle: collection,
+        reverse,
+        sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
+        first: first || undefined,
+      },
+    });
 
-  if (!res.body.data.collection) {
-    console.log(`No collection found for \`${collection}\``);
-    return [];
+    if (!res.body.data.collection) {
+      console.log(`No collection found for \`${collection}\``);
+      return [];
+    }
+
+    return reshapeProducts(
+      removeEdgesAndNodes(res.body.data.collection.products)
+    );
+  } catch (error) {
+    console.error(`Error fetching collection products "${collection}":`, error);
+    return []; // Return empty array on error to prevent build crash
   }
-
-  return reshapeProducts(
-    removeEdgesAndNodes(res.body.data.collection.products)
-  );
 }
 
 export async function getCollectionProductsWithPagination({
@@ -247,34 +252,42 @@ export async function getCollectionProductsWithPagination({
   first?: number;
   after?: string;
 }): Promise<{ products: Product[]; pageInfo: PageInfo }> {
-  const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
-    query: getCollectionProductsQuery,
-    tags: [TAGS.collections, TAGS.products],
-    variables: {
-      handle: collection,
-      reverse,
-      sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
-      first,
-      after,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
+      query: getCollectionProductsQuery,
+      tags: [TAGS.collections, TAGS.products],
+      variables: {
+        handle: collection,
+        reverse,
+        sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
+        first,
+        after,
+      },
+    });
 
-  if (!res.body.data.collection) {
-    console.log(`No collection found for \`${collection}\``);
+    if (!res.body.data.collection) {
+      console.log(`No collection found for \`${collection}\``);
+      return {
+        products: [],
+        pageInfo: { hasNextPage: false, hasPreviousPage: false },
+      };
+    }
+
+    const { nodes, pageInfo } = removeEdgesAndNodesWithCursor(
+      res.body.data.collection.products
+    );
+
+    return {
+      products: reshapeProducts(nodes),
+      pageInfo,
+    };
+  } catch (error) {
+    console.error(`Error fetching collection products with pagination "${collection}":`, error);
     return {
       products: [],
       pageInfo: { hasNextPage: false, hasPreviousPage: false },
-    };
+    }; // Return empty result on error to prevent build crash
   }
-
-  const { nodes, pageInfo } = removeEdgesAndNodesWithCursor(
-    res.body.data.collection.products
-  );
-
-  return {
-    products: reshapeProducts(nodes),
-    pageInfo,
-  };
 }
 
 export async function getCollectionByHandle(
