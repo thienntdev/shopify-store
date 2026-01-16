@@ -6,11 +6,14 @@ import { getCollectionProductsWithPagination } from "@/libs/shopify";
 import { Product, PageInfo } from "@/libs/shopify/types";
 
 export type SortOption =
+  | "FEATURED"
   | "BEST_SELLING"
-  | "TITLE"
-  | "PRICE"
-  | "CREATED_AT"
-  | "RELEVANCE";
+  | "TITLE_ASC"
+  | "TITLE_DESC"
+  | "PRICE_ASC"
+  | "PRICE_DESC"
+  | "CREATED_AT_ASC"
+  | "CREATED_AT_DESC";
 
 export interface CollectionFilters {
   occasions?: string[];
@@ -25,6 +28,30 @@ export interface CollectionProductsResult {
   totalCount: number;
 }
 
+// Helper function to convert SortOption to Shopify sortKey and reverse
+function getSortParams(sortBy: SortOption): { sortKey: string; reverse: boolean } {
+  switch (sortBy) {
+    case "FEATURED":
+      return { sortKey: "MANUAL", reverse: false };
+    case "BEST_SELLING":
+      return { sortKey: "BEST_SELLING", reverse: false };
+    case "TITLE_ASC":
+      return { sortKey: "TITLE", reverse: false };
+    case "TITLE_DESC":
+      return { sortKey: "TITLE", reverse: true };
+    case "PRICE_ASC":
+      return { sortKey: "PRICE", reverse: false };
+    case "PRICE_DESC":
+      return { sortKey: "PRICE", reverse: true };
+    case "CREATED_AT_ASC":
+      return { sortKey: "CREATED", reverse: false };
+    case "CREATED_AT_DESC":
+      return { sortKey: "CREATED", reverse: true };
+    default:
+      return { sortKey: "BEST_SELLING", reverse: false };
+  }
+}
+
 export async function getFilteredCollectionProducts(
   collectionHandle: string,
   options: {
@@ -37,13 +64,16 @@ export async function getFilteredCollectionProducts(
   }
 ): Promise<CollectionProductsResult> {
   const {
-    sortBy = "BEST_SELLING",
-    reverse = false,
+    sortBy = "FEATURED",
+    reverse: reverseParam,
     page = 1,
     pageSize = 16,
     after,
     filters,
   } = options;
+
+  // Get sort parameters from sortBy option
+  const { sortKey, reverse } = getSortParams(sortBy);
 
   // Build query string for filtering by tags
   let query = "";
@@ -62,7 +92,7 @@ export async function getFilteredCollectionProducts(
   const fetchSize = pageSize * 10; // Fetch 10x pageSize to handle filtering and multiple pages
   const result = await getCollectionProductsWithPagination({
     collection: collectionHandle,
-    sortKey: sortBy,
+    sortKey,
     reverse,
     first: fetchSize,
     after,

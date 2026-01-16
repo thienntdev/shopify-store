@@ -129,7 +129,7 @@ export default function MobileMenuButton() {
         <>
           {/* Menu Panel - Slide from left to right when opening, right to left when closing */}
           <div
-            className={`fixed left-0 top-0 bottom-0 w-full bg-white z-50 shadow-xl overflow-y-auto transition-transform duration-300 ease-in-out ${
+            className={`fixed left-0 top-0 bottom-0 w-full bg-white z-[100] shadow-xl overflow-y-auto transition-transform duration-300 ease-in-out ${
               isClosing
                 ? "-translate-x-full"
                 : isOpening

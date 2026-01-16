@@ -55,17 +55,29 @@ export default function MobileFilterModal({
     }
   }, [isOpen, selectedOccasions, selectedRecipients, priceFilter]);
 
-  // Handlers that only update local state (not applied yet)
+  // Handlers that only update local state (not applied yet) - Multi-select support
   const handleTempOccasionChange = (value: string) => {
-    setTempOccasions((prev) => (prev.includes(value) ? [] : [value]));
+    setTempOccasions((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
   };
 
   const handleTempRecipientChange = (value: string) => {
-    setTempRecipients((prev) => (prev.includes(value) ? [] : [value]));
+    setTempRecipients((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
   };
 
   const handleTempPriceChange = (min: number, max: number) => {
     setTempPriceFilter({ min, max });
+  };
+
+  // Clear all filters
+  const handleClearAll = () => {
+    // Reset temp state to default values
+    setTempOccasions([]);
+    setTempRecipients([]);
+    setTempPriceFilter({ min: priceRange.min, max: priceRange.max });
   };
 
   // Apply all filters when clicking Apply button
@@ -84,22 +96,46 @@ export default function MobileFilterModal({
 
     // Apply filters if changed
     if (occasionsChanged || recipientsChanged || priceChanged) {
-      // Apply occasions
+      // Apply occasions - support multi-select
       if (occasionsChanged) {
-        if (tempOccasions.length > 0) {
-          onOccasionChange(tempOccasions[0]);
-        } else {
-          onOccasionChange("");
-        }
+        // Calculate what needs to be added and removed
+        const toRemove = selectedOccasions.filter(
+          (occ) => !tempOccasions.includes(occ)
+        );
+        const toAdd = tempOccasions.filter(
+          (occ) => !selectedOccasions.includes(occ)
+        );
+
+        // Remove occasions that are no longer selected
+        toRemove.forEach((occ) => {
+          onOccasionChange(occ); // Toggle to remove
+        });
+
+        // Add occasions that are newly selected
+        toAdd.forEach((occ) => {
+          onOccasionChange(occ); // Toggle to add
+        });
       }
 
-      // Apply recipients
+      // Apply recipients - support multi-select
       if (recipientsChanged) {
-        if (tempRecipients.length > 0) {
-          onRecipientChange(tempRecipients[0]);
-        } else {
-          onRecipientChange("");
-        }
+        // Calculate what needs to be added and removed
+        const toRemove = selectedRecipients.filter(
+          (rec) => !tempRecipients.includes(rec)
+        );
+        const toAdd = tempRecipients.filter(
+          (rec) => !selectedRecipients.includes(rec)
+        );
+
+        // Remove recipients that are no longer selected
+        toRemove.forEach((rec) => {
+          onRecipientChange(rec); // Toggle to remove
+        });
+
+        // Add recipients that are newly selected
+        toAdd.forEach((rec) => {
+          onRecipientChange(rec); // Toggle to add
+        });
       }
 
       // Apply price filter
@@ -147,7 +183,7 @@ export default function MobileFilterModal({
     <>
       {/* Modal with slide animation */}
       <div
-        className={`fixed left-0 bottom-0 w-80 bg-white z-50 lg:hidden overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+        className={`fixed left-0 bottom-0 w-80 bg-white z-40 lg:hidden overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{
@@ -193,14 +229,24 @@ export default function MobileFilterModal({
           />
         </div>
 
-        {/* Apply Button */}
+        {/* Action Buttons */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-3 shadow-lg">
-          <button
-            onClick={handleApply}
-            className="w-full bg-orange-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors shadow-md"
-          >
-            Apply Filters
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Clear All Button */}
+            <button
+              onClick={handleClearAll}
+              className="flex-1 bg-gray-100 text-gray-700 py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-gray-200 transition-colors"
+            >
+              Clear All
+            </button>
+            {/* Apply Filters Button */}
+            <button
+              onClick={handleApply}
+              className="flex-1 bg-orange-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors shadow-md"
+            >
+              Apply Filters
+            </button>
+          </div>
         </div>
       </div>
     </>

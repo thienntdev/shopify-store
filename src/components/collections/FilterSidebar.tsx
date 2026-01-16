@@ -3,12 +3,19 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import PriceRangeSlider from "./PriceRangeSlider";
+import FilterOptionButtons from "./FilterOptionButtons";
 
+// Re-export FilterOption for backward compatibility
 export interface FilterOption {
   value: string;
   label: string;
   count?: number;
 }
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat("vi-VN").format(price);
+};
 
 interface FilterSidebarProps {
   occasions: FilterOption[];
@@ -33,262 +40,364 @@ export default function FilterSidebar({
   onRecipientChange,
   onPriceChange,
 }: FilterSidebarProps) {
-  const [expandedSections, setExpandedSections] = useState({
-    occasions: true,
-    recipients: true,
-    priceRange: true,
-  });
+  const [openDropdown, setOpenDropdown] = useState<
+    "occasions" | "recipients" | "price" | null
+  >(null);
+  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [tempPriceFilter, setTempPriceFilter] = useState(priceFilter);
+  // Temporary state for desktop dropdowns (only apply when clicking "View Results")
+  const [tempOccasions, setTempOccasions] =
+    useState<string[]>(selectedOccasions);
+  const [tempRecipients, setTempRecipients] =
+    useState<string[]>(selectedRecipients);
+  const occasionsDropdownRef = useRef<HTMLDivElement>(null);
+  const recipientsDropdownRef = useRef<HTMLDivElement>(null);
+  const priceModalRef = useRef<HTMLDivElement>(null);
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  // Local state for price slider to update UI immediately
-  const [localMaxPrice, setLocalMaxPrice] = useState(priceFilter.max);
-  const priceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Sync local state with prop
+  // Reset tempPriceFilter when modal opens
   useEffect(() => {
-    setLocalMaxPrice(priceFilter.max);
-  }, [priceFilter.max]);
+    if (isPriceModalOpen) {
+      setTempPriceFilter(priceFilter);
+    }
+  }, [isPriceModalOpen, priceFilter]);
 
+  // Reset tempOccasions and tempRecipients when dropdown opens
   useEffect(() => {
-    return () => {
-      if (priceTimeoutRef.current) {
-        clearTimeout(priceTimeoutRef.current);
+    if (openDropdown === "occasions") {
+      setTempOccasions(selectedOccasions);
+    }
+    if (openDropdown === "recipients") {
+      setTempRecipients(selectedRecipients);
+    }
+  }, [openDropdown, selectedOccasions, selectedRecipients]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        occasionsDropdownRef.current &&
+        !occasionsDropdownRef.current.contains(event.target as Node) &&
+        openDropdown === "occasions"
+      ) {
+        setOpenDropdown(null);
+      }
+      if (
+        recipientsDropdownRef.current &&
+        !recipientsDropdownRef.current.contains(event.target as Node) &&
+        openDropdown === "recipients"
+      ) {
+        setOpenDropdown(null);
+      }
+      if (
+        priceModalRef.current &&
+        !priceModalRef.current.contains(event.target as Node) &&
+        isPriceModalOpen
+      ) {
+        setIsPriceModalOpen(false);
       }
     };
-  }, []);
 
-  const handlePriceSliderChange = (max: number) => {
-    // Update local state immediately for smooth UI
-    setLocalMaxPrice(max);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isPriceModalOpen, openDropdown]);
 
-    // Clear previous timeout
-    if (priceTimeoutRef.current) {
-      clearTimeout(priceTimeoutRef.current);
-    }
-
-    // Debounce the actual price change callback
-    priceTimeoutRef.current = setTimeout(() => {
-      onPriceChange(priceFilter.min, max);
-    }, 500);
-  };
-
-  const handlePriceInputChange = (type: "min" | "max", value: string) => {
-    const numValue = parseFloat(value) || 0;
-    if (type === "min") {
-      onPriceChange(
-        Math.max(priceRange.min, Math.min(numValue, priceFilter.max)),
-        priceFilter.max
-      );
+  const toggleDropdown = (type: "occasions" | "recipients" | "price") => {
+    if (type === "price") {
+      setIsPriceModalOpen(true);
+      setOpenDropdown(null);
     } else {
-      const newMax = Math.max(
-        priceFilter.min,
-        Math.min(numValue, priceRange.max)
-      );
-      setLocalMaxPrice(newMax);
-      onPriceChange(priceFilter.min, newMax);
+      setOpenDropdown(openDropdown === type ? null : type);
+      setIsPriceModalOpen(false);
     }
   };
+
+  const applyPriceFilter = () => {
+    // Apply the temporary price filter
+    onPriceChange(tempPriceFilter.min, tempPriceFilter.max);
+    setIsPriceModalOpen(false);
+  };
+
+  const getSelectedOccasionLabel = () => {
+    // Always return "Occasions" - color change indicates selection
+    return "Occasions";
+  };
+
+  const getSelectedRecipientLabel = () => {
+    // Always return "Recipients" - color change indicates selection
+    return "Recipients";
+  };
+
+  const isPriceFilterActive =
+    priceFilter.min !== priceRange.min || priceFilter.max !== priceRange.max;
 
   return (
-    <aside className="w-full lg:w-64 shrink-0">
-      <div className="bg-white rounded-lg p-3 lg:p-4 space-y-4 lg:space-y-6 sticky top-4">
-        {/* Occasions Filter */}
-        <div className="border-b border-gray-200 pb-3 lg:pb-4">
-          <button
-            onClick={() => toggleSection("occasions")}
-            className="w-full flex items-center justify-between text-base lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3"
-          >
-            <span>Occasions</span>
-            <svg
-              className={`w-4 h-4 lg:w-5 lg:h-5 transition-transform ${
-                expandedSections.occasions ? "rotate-180" : ""
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {expandedSections.occasions && (
-            <div className="space-y-1.5 lg:space-y-2">
-              {occasions.map((occasion) => (
-                <label
-                  key={occasion.value}
-                  className="flex items-center gap-2 cursor-pointer group"
-                >
-                  <input
-                    type="radio"
-                    name="occasion"
-                    value={occasion.value}
-                    checked={selectedOccasions.includes(occasion.value)}
-                    onChange={() => onOccasionChange(occasion.value)}
-                    className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-orange-500 border-gray-300 focus:ring-orange-500 focus:ring-2"
-                  />
-                  <span className="text-xs lg:text-sm text-gray-700 group-hover:text-orange-500 transition-colors">
-                    {occasion.label}
-                  </span>
-                  {occasion.count !== undefined && (
-                    <span className="text-[10px] lg:text-xs text-gray-500 ml-auto">
-                      ({occasion.count})
-                    </span>
-                  )}
-                </label>
-              ))}
-            </div>
-          )}
+    <>
+      {/* Vertical Filter Layout - Mobile Only */}
+      <div className="lg:hidden space-y-6">
+        {/* Price Range Section - First */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            Price Range
+          </h3>
+          <PriceRangeSlider
+            priceRange={priceRange}
+            priceFilter={priceFilter}
+            onPriceChange={onPriceChange}
+          />
         </div>
 
-        {/* Recipients Filter */}
-        <div className="border-b border-gray-200 pb-3 lg:pb-4">
-          <button
-            onClick={() => toggleSection("recipients")}
-            className="w-full flex items-center justify-between text-base lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3"
-          >
-            <span>Recipients</span>
-            <svg
-              className={`w-4 h-4 lg:w-5 lg:h-5 transition-transform ${
-                expandedSections.recipients ? "rotate-180" : ""
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {expandedSections.recipients && (
-            <div className="space-y-1.5 lg:space-y-2">
-              {recipients.map((recipient) => (
-                <label
-                  key={recipient.value}
-                  className="flex items-center gap-2 cursor-pointer group"
-                >
-                  <input
-                    type="radio"
-                    name="recipient"
-                    value={recipient.value}
-                    checked={selectedRecipients.includes(recipient.value)}
-                    onChange={() => onRecipientChange(recipient.value)}
-                    className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-orange-500 border-gray-300 focus:ring-orange-500 focus:ring-2"
-                  />
-                  <span className="text-xs lg:text-sm text-gray-700 group-hover:text-orange-500 transition-colors">
-                    {recipient.label}
-                  </span>
-                  {recipient.count !== undefined && (
-                    <span className="text-[10px] lg:text-xs text-gray-500 ml-auto">
-                      ({recipient.count})
-                    </span>
-                  )}
-                </label>
-              ))}
-            </div>
-          )}
+        {/* Occasions Section */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            Occasions
+          </h3>
+          <FilterOptionButtons
+            options={occasions}
+            selectedValues={selectedOccasions}
+            onToggle={onOccasionChange}
+          />
         </div>
 
-        {/* Price Range Filter */}
-        <div className="pb-3 lg:pb-4">
-          <button
-            onClick={() => toggleSection("priceRange")}
-            className="w-full flex items-center justify-between text-base lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3"
-          >
-            <span>Price Range</span>
-            <svg
-              className={`w-4 h-4 lg:w-5 lg:h-5 transition-transform ${
-                expandedSections.priceRange ? "rotate-180" : ""
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {expandedSections.priceRange && (
-            <div className="space-y-3 lg:space-y-4">
-              {/* Price Range Slider */}
-              <div className="relative">
-                <input
-                  type="range"
-                  min={priceRange.min}
-                  max={priceRange.max}
-                  value={localMaxPrice}
-                  onChange={(e) =>
-                    handlePriceSliderChange(parseInt(e.target.value))
-                  }
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
-                  style={{
-                    background: `linear-gradient(to right, #f97316 0%, #f97316 ${
-                      ((localMaxPrice - priceRange.min) /
-                        (priceRange.max - priceRange.min)) *
-                      100
-                    }%, #e5e7eb ${
-                      ((localMaxPrice - priceRange.min) /
-                        (priceRange.max - priceRange.min)) *
-                      100
-                    }%, #e5e7eb 100%)`,
-                  }}
-                />
-              </div>
-
-              {/* Price Inputs */}
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <label className="text-[10px] lg:text-xs text-gray-600 mb-0.5 lg:mb-1 block">
-                    Min
-                  </label>
-                  <input
-                    type="number"
-                    min={priceRange.min}
-                    max={priceFilter.max}
-                    value={priceFilter.min}
-                    onChange={(e) =>
-                      handlePriceInputChange("min", e.target.value)
-                    }
-                    className="w-full px-2 py-1.5 lg:px-3 lg:py-2 border border-gray-300 rounded-md text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="text-[10px] lg:text-xs text-gray-600 mb-0.5 lg:mb-1 block">
-                    Max
-                  </label>
-                  <input
-                    type="number"
-                    min={priceFilter.min}
-                    max={priceRange.max}
-                    value={localMaxPrice}
-                    onChange={(e) =>
-                      handlePriceInputChange("max", e.target.value)
-                    }
-                    className="w-full px-2 py-1.5 lg:px-3 lg:py-2 border border-gray-300 rounded-md text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Recipients Section */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            Recipients
+          </h3>
+          <FilterOptionButtons
+            options={recipients}
+            selectedValues={selectedRecipients}
+            onToggle={onRecipientChange}
+          />
         </div>
       </div>
-    </aside>
+
+      {/* Horizontal Filter Bar - Desktop Only */}
+      <div className="hidden lg:block mb-6">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-semibold text-gray-700 mr-2">
+            Filter by criteria:
+          </span>
+          {/* Occasions Filter Button */}
+          <div className="relative" ref={occasionsDropdownRef}>
+            <button
+              onClick={() => toggleDropdown("occasions")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                selectedOccasions.length > 0
+                  ? "border-red-500 bg-red-50 text-red-700"
+                  : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+              }`}
+            >
+              <span className="text-sm font-medium">
+                {getSelectedOccasionLabel()}
+              </span>
+              <svg
+                className={`w-4 h-4 transition-transform ${
+                  openDropdown === "occasions" ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {/* Occasions Dropdown */}
+            {openDropdown === "occasions" && (
+              <div className="absolute top-full left-0 mt-2 w-auto min-w-96 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4">
+                <FilterOptionButtons
+                  options={occasions}
+                  selectedValues={tempOccasions}
+                  onToggle={(value) => {
+                    // Update temporary state only
+                    setTempOccasions((prev) =>
+                      prev.includes(value)
+                        ? prev.filter((v) => v !== value)
+                        : [...prev, value]
+                    );
+                  }}
+                />
+                <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setOpenDropdown(null)}
+                    className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Apply all changes
+                      tempOccasions.forEach((val) => {
+                        if (!selectedOccasions.includes(val)) {
+                          onOccasionChange(val);
+                        }
+                      });
+                      selectedOccasions.forEach((val) => {
+                        if (!tempOccasions.includes(val)) {
+                          onOccasionChange(val);
+                        }
+                      });
+                      setOpenDropdown(null);
+                    }}
+                    className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors cursor-pointer"
+                  >
+                    View Results
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Recipients Filter Button */}
+          <div className="relative" ref={recipientsDropdownRef}>
+            <button
+              onClick={() => toggleDropdown("recipients")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                selectedRecipients.length > 0
+                  ? "border-red-500 bg-red-50 text-red-700"
+                  : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+              }`}
+            >
+              <span className="text-sm font-medium">
+                {getSelectedRecipientLabel()}
+              </span>
+              <svg
+                className={`w-4 h-4 transition-transform ${
+                  openDropdown === "recipients" ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {/* Recipients Dropdown */}
+            {openDropdown === "recipients" && (
+              <div className="absolute top-full left-0 mt-2 w-auto min-w-96 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4">
+                <FilterOptionButtons
+                  options={recipients}
+                  selectedValues={tempRecipients}
+                  onToggle={(value) => {
+                    // Update temporary state only
+                    setTempRecipients((prev) =>
+                      prev.includes(value)
+                        ? prev.filter((v) => v !== value)
+                        : [...prev, value]
+                    );
+                  }}
+                />
+                <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setOpenDropdown(null)}
+                    className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Apply all changes
+                      tempRecipients.forEach((val) => {
+                        if (!selectedRecipients.includes(val)) {
+                          onRecipientChange(val);
+                        }
+                      });
+                      selectedRecipients.forEach((val) => {
+                        if (!tempRecipients.includes(val)) {
+                          onRecipientChange(val);
+                        }
+                      });
+                      setOpenDropdown(null);
+                    }}
+                    className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors cursor-pointer"
+                  >
+                    View Results
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Price Range Filter Button */}
+          <div className="relative" ref={priceModalRef}>
+            <button
+              onClick={() => toggleDropdown("price")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                isPriceFilterActive
+                  ? "border-red-500 bg-red-50 text-red-700"
+                  : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+              }`}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="text-sm font-medium">Filter by Price</span>
+            </button>
+
+            {/* Price Range Modal */}
+            {isPriceModalOpen && (
+              <div className="absolute top-full left-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Choose a price range that suits you
+                </h3>
+
+                <PriceRangeSlider
+                  priceRange={priceRange}
+                  priceFilter={priceFilter}
+                  autoUpdate={false}
+                  onValueChange={(min, max) => {
+                    // Store temporary values, don't update parent yet
+                    setTempPriceFilter({ min, max });
+                  }}
+                  onPriceChange={(min, max) => {
+                    // This won't be called when autoUpdate is false
+                    onPriceChange(min, max);
+                  }}
+                />
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setIsPriceModalOpen(false)}
+                    className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={applyPriceFilter}
+                    className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                  >
+                    View Results
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

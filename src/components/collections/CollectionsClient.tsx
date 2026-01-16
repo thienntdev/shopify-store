@@ -15,7 +15,7 @@ import { Product } from "@/libs/shopify/types";
 import ProductCard from "../product/ProductCard";
 import FilterSidebar, { FilterOption } from "./FilterSidebar";
 import QuickFilters from "./QuickFilters";
-import SortAndView, { SortOption, ViewMode } from "./SortAndView";
+import SortAndView, { SortOption } from "./SortAndView";
 import Pagination from "./Pagination";
 import MobileFilterModal from "./MobileFilterModal";
 import { getFilteredCollectionProducts, CollectionFilters } from "./actions";
@@ -45,8 +45,7 @@ export default function CollectionsClient({
 
   // Get initial state from URL params
   const getInitialState = () => {
-    const sortBy = (searchParams.get("sort") as SortOption) || "BEST_SELLING";
-    const viewMode = "grid"; // Always default to grid
+    const sortBy = (searchParams.get("sort") as SortOption) || "FEATURED";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const occasion = searchParams.get("occasion") || "";
     const recipient = searchParams.get("recipient") || "";
@@ -59,7 +58,6 @@ export default function CollectionsClient({
 
     return {
       sortBy,
-      viewMode: viewMode as ViewMode,
       page,
       selectedOccasions: occasion ? [occasion] : [],
       selectedRecipients: recipient ? [recipient] : [],
@@ -83,7 +81,6 @@ export default function CollectionsClient({
       const params = new URLSearchParams(searchParams.toString());
 
       if (updates.sortBy) params.set("sort", updates.sortBy);
-      if (updates.viewMode) params.set("view", updates.viewMode);
       if (updates.page && updates.page > 1) {
         params.set("page", updates.page.toString());
       } else {
@@ -280,35 +277,44 @@ export default function CollectionsClient({
     updateURL({ sortBy: sort, page: 1 });
   };
 
-  const handleViewChange = useCallback((view: ViewMode) => {
-    // View mode is only local UI state, no need to save to URL or localStorage
-    setState((prev) => ({ ...prev, viewMode: view }));
-  }, []);
-
   const handleOccasionChange = (value: string) => {
-    setState((prev) => ({
-      ...prev,
-      selectedOccasions: prev.selectedOccasions.includes(value) ? [] : [value],
-      page: 1,
-    }));
+    setState((prev) => {
+      const newOccasions = prev.selectedOccasions.includes(value)
+        ? prev.selectedOccasions.filter((v) => v !== value)
+        : [...prev.selectedOccasions, value];
+      return {
+        ...prev,
+        selectedOccasions: newOccasions,
+        page: 1,
+      };
+    });
+    // Update URL with first occasion or empty
+    const newOccasions = state.selectedOccasions.includes(value)
+      ? state.selectedOccasions.filter((v) => v !== value)
+      : [...state.selectedOccasions, value];
     updateURL({
-      selectedOccasions: state.selectedOccasions.includes(value) ? [] : [value],
+      selectedOccasions: newOccasions.length > 0 ? [newOccasions[0]] : [],
       page: 1,
     });
   };
 
   const handleRecipientChange = (value: string) => {
-    setState((prev) => ({
-      ...prev,
-      selectedRecipients: prev.selectedRecipients.includes(value)
-        ? []
-        : [value],
-      page: 1,
-    }));
+    setState((prev) => {
+      const newRecipients = prev.selectedRecipients.includes(value)
+        ? prev.selectedRecipients.filter((v) => v !== value)
+        : [...prev.selectedRecipients, value];
+      return {
+        ...prev,
+        selectedRecipients: newRecipients,
+        page: 1,
+      };
+    });
+    // Update URL with first recipient or empty
+    const newRecipients = state.selectedRecipients.includes(value)
+      ? state.selectedRecipients.filter((v) => v !== value)
+      : [...state.selectedRecipients, value];
     updateURL({
-      selectedRecipients: state.selectedRecipients.includes(value)
-        ? []
-        : [value],
+      selectedRecipients: newRecipients.length > 0 ? [newRecipients[0]] : [],
       page: 1,
     });
   };
@@ -403,11 +409,46 @@ export default function CollectionsClient({
   const totalPages = Math.ceil(currentTotalCount / 16);
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-white min-h-screen">
-      <BreadCrumbs> {collectionHandle} </BreadCrumbs>
+    <div className="container mx-auto px-4 py-4 bg-white min-h-screen">
+      {/* <BreadCrumbs> {collectionHandle} </BreadCrumbs> */}
 
-      {/* Mobile Header with Filter Button */}
+      {/* Title - Desktop: Title, Sort, Product Count on same line */}
+      <div className="flex items-center justify-between mb-4 lg:mb-6">
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 capitalize">
+          {collectionHandle.replace(/-/g, " ")}
+        </h1>
+        {/* Desktop: Sort and Products count - Right aligned */}
+        <div className="hidden lg:flex items-center gap-4">
+          {/* Sort */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-700">SORT:</span>
+            <select
+              value={state.sortBy}
+              onChange={(e) => handleSortChange(e.target.value as SortOption)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white cursor-pointer"
+            >
+              <option value="FEATURED">Featured</option>
+              <option value="BEST_SELLING">Best selling</option>
+              <option value="TITLE_ASC">Alphabetically, A-Z</option>
+              <option value="TITLE_DESC">Alphabetically, Z-A</option>
+              <option value="PRICE_ASC">Price, low to high</option>
+              <option value="PRICE_DESC">Price, high to low</option>
+              <option value="CREATED_AT_ASC">Date, old to new</option>
+              <option value="CREATED_AT_DESC">Date, new to old</option>
+            </select>
+          </div>
+          {/* Products count */}
+          <p className="text-gray-600">{currentTotalCount} products</p>
+        </div>
+        {/* Mobile: Products count - Right aligned */}
+        <p className="text-sm font-medium text-gray-700 lg:hidden">
+          {currentTotalCount} products
+        </p>
+      </div>
+
+      {/* Mobile: Filter (left) and Sort (right) */}
       <div className="lg:hidden flex items-center justify-between mb-4">
+        {/* Filter - Left */}
         <button
           onClick={() => setIsMobileFilterOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
@@ -427,22 +468,30 @@ export default function CollectionsClient({
           </svg>
           <span>Filters</span>
         </button>
-        <p className="text-sm font-medium text-gray-700">
-          {currentTotalCount} products
-        </p>
+
+        {/* Sort - Right */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-gray-700">SORT:</span>
+          <select
+            value={state.sortBy}
+            onChange={(e) => handleSortChange(e.target.value as SortOption)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white cursor-pointer"
+          >
+            <option value="FEATURED">Featured</option>
+            <option value="BEST_SELLING">Best selling</option>
+            <option value="TITLE_ASC">Alphabetically, A-Z</option>
+            <option value="TITLE_DESC">Alphabetically, Z-A</option>
+            <option value="PRICE_ASC">Price, low to high</option>
+            <option value="PRICE_DESC">Price, high to low</option>
+            <option value="CREATED_AT_ASC">Date, old to new</option>
+            <option value="CREATED_AT_DESC">Date, new to old</option>
+          </select>
+        </div>
       </div>
 
-      {/* Title */}
-      <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 capitalize">
-        {collectionHandle.replace(/-/g, " ")}
-      </h1>
-      <p className="text-gray-600 mb-6 hidden lg:block">
-        Showing {currentTotalCount} unique products
-      </p>
-
       {/* Main Content */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Filter Sidebar - Hidden on mobile, shown on desktop */}
+      <div className="flex flex-col">
+        {/* Filter Sidebar - Horizontal on desktop, hidden on mobile */}
         <div className="hidden lg:block">
           <FilterSidebar
             occasions={occasions}
@@ -457,23 +506,15 @@ export default function CollectionsClient({
           />
         </div>
 
+        {/* Quick Filters */}
+        <QuickFilters
+          activeFilters={activeFilters}
+          onRemoveFilter={handleRemoveFilter}
+          onClearAll={handleClearAll}
+        />
+
         {/* Products Section */}
         <div className="flex-1">
-          {/* Sort and View */}
-          <SortAndView
-            sortBy={state.sortBy}
-            viewMode={state.viewMode}
-            onSortChange={handleSortChange}
-            onViewChange={handleViewChange}
-          />
-
-          {/* Quick Filters */}
-          <QuickFilters
-            activeFilters={activeFilters}
-            onRemoveFilter={handleRemoveFilter}
-            onClearAll={handleClearAll}
-          />
-
           {/* Price filter loading indicator */}
           {isPriceFilterPending && (
             <div className="mb-4 text-sm text-gray-500">
@@ -503,19 +544,13 @@ export default function CollectionsClient({
                 </div>
               )}
 
-              <div
-                className={
-                  state.viewMode === "grid"
-                    ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6"
-                    : "flex flex-col gap-6"
-                }
-              >
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
                 {products.map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
-                    variant={state.viewMode === "list" ? "list" : "default"}
-                    showDescription={state.viewMode === "list"}
+                    variant="default"
+                    showDescription={false}
                     showWishlist={true}
                   />
                 ))}
@@ -527,19 +562,13 @@ export default function CollectionsClient({
           {isPending &&
             previousProducts.length > 0 &&
             products.length === 0 && (
-              <div
-                className={
-                  state.viewMode === "grid"
-                    ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6 opacity-50"
-                    : "flex flex-col gap-6 opacity-50"
-                }
-              >
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6 opacity-50">
                 {previousProducts.map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
-                    variant={state.viewMode === "list" ? "list" : "default"}
-                    showDescription={state.viewMode === "list"}
+                    variant="default"
+                    showDescription={false}
                     showWishlist={true}
                   />
                 ))}
