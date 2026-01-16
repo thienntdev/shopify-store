@@ -37,14 +37,13 @@ export default function MobileFilterModal({
   const [headerHeight, setHeaderHeight] = useState(0);
 
   // Local state for temporary filter values (only apply when clicking Apply button)
-  const [tempOccasions, setTempOccasions] =
-    useState<string[]>(selectedOccasions);
-  const [tempRecipients, setTempRecipients] =
-    useState<string[]>(selectedRecipients);
+  // Use lazy state initialization (5.6)
+  const [tempOccasions, setTempOccasions] = useState(() => selectedOccasions);
+  const [tempRecipients, setTempRecipients] = useState(() => selectedRecipients);
   const [tempPriceFilter, setTempPriceFilter] = useState<{
     min: number;
     max: number;
-  }>(priceFilter);
+  }>(() => priceFilter);
 
   // Sync local state when modal opens or props change
   useEffect(() => {
@@ -56,6 +55,7 @@ export default function MobileFilterModal({
   }, [isOpen, selectedOccasions, selectedRecipients, priceFilter]);
 
   // Handlers that only update local state (not applied yet) - Multi-select support
+  // Use functional setState updates (5.5)
   const handleTempOccasionChange = (value: string) => {
     setTempOccasions((prev) =>
       prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
@@ -81,14 +81,17 @@ export default function MobileFilterModal({
   };
 
   // Apply all filters when clicking Apply button
+  // Use early length check for array comparisons (7.7)
   const handleApply = () => {
     // Close modal first to prevent any re-render issues
     onClose();
 
-    // Check if any filter has changed
+    // Check if any filter has changed - early length check first
     const occasionsChanged =
+      tempOccasions.length !== selectedOccasions.length ||
       JSON.stringify(tempOccasions) !== JSON.stringify(selectedOccasions);
     const recipientsChanged =
+      tempRecipients.length !== selectedRecipients.length ||
       JSON.stringify(tempRecipients) !== JSON.stringify(selectedRecipients);
     const priceChanged =
       tempPriceFilter.min !== priceFilter.min ||

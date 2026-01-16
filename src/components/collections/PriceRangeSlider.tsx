@@ -4,8 +4,15 @@
 
 import { useState, useEffect, useRef } from "react";
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("vi-VN").format(price);
+// Cache formatPrice function (7.4) - Module-level cache for repeated calls
+const formatPriceCache = new Map<number, string>();
+const formatPrice = (price: number): string => {
+  if (formatPriceCache.has(price)) {
+    return formatPriceCache.get(price)!;
+  }
+  const formatted = new Intl.NumberFormat("vi-VN").format(price);
+  formatPriceCache.set(price, formatted);
+  return formatted;
 };
 
 interface PriceRangeSliderProps {
@@ -23,12 +30,13 @@ export default function PriceRangeSlider({
   autoUpdate = true, // Default to true for mobile
   onValueChange,
 }: PriceRangeSliderProps) {
-  const [localMinPrice, setLocalMinPrice] = useState(priceFilter.min);
-  const [localMaxPrice, setLocalMaxPrice] = useState(priceFilter.max);
-  const [minPriceInput, setMinPriceInput] = useState(
+  // Use lazy state initialization (5.6)
+  const [localMinPrice, setLocalMinPrice] = useState(() => priceFilter.min);
+  const [localMaxPrice, setLocalMaxPrice] = useState(() => priceFilter.max);
+  const [minPriceInput, setMinPriceInput] = useState(() =>
     formatPrice(priceFilter.min)
   );
-  const [maxPriceInput, setMaxPriceInput] = useState(
+  const [maxPriceInput, setMaxPriceInput] = useState(() =>
     formatPrice(priceFilter.max)
   );
   const [isDragging, setIsDragging] = useState(false);
@@ -71,28 +79,49 @@ export default function PriceRangeSlider({
       Math.min(value, priceRange.max)
     );
 
+    // Use functional setState updates (5.5) - read both values together
     if (sliderId === "slider1") {
-      if (clampedValue > localMaxPrice) {
-        const oldMax = localMaxPrice;
-        setLocalMinPrice(oldMax);
-        setLocalMaxPrice(clampedValue);
-        setMinPriceInput(formatPrice(oldMax));
-        setMaxPriceInput(formatPrice(clampedValue));
-      } else {
-        setLocalMinPrice(clampedValue);
-        setMinPriceInput(formatPrice(clampedValue));
-      }
+      // Update min price, checking against current max
+      setLocalMaxPrice((prevMax) => {
+        setLocalMinPrice((prevMin) => {
+          if (clampedValue > prevMax) {
+            // Swap: min exceeds max, so swap them
+            setMinPriceInput(formatPrice(prevMax));
+            setMaxPriceInput(formatPrice(clampedValue));
+            return prevMax; // min becomes old max
+          } else {
+            // Normal case: min is within range
+            setMinPriceInput(formatPrice(clampedValue));
+            return clampedValue;
+          }
+        });
+        // Update max if it was swapped
+        if (clampedValue > prevMax) {
+          return clampedValue; // max becomes new value
+        }
+        return prevMax;
+      });
     } else {
-      if (clampedValue < localMinPrice) {
-        const oldMin = localMinPrice;
-        setLocalMaxPrice(oldMin);
-        setLocalMinPrice(clampedValue);
-        setMaxPriceInput(formatPrice(oldMin));
-        setMinPriceInput(formatPrice(clampedValue));
-      } else {
-        setLocalMaxPrice(clampedValue);
-        setMaxPriceInput(formatPrice(clampedValue));
-      }
+      // Update max price, checking against current min
+      setLocalMinPrice((prevMin) => {
+        setLocalMaxPrice((prevMax) => {
+          if (clampedValue < prevMin) {
+            // Swap: max goes below min, so swap them
+            setMaxPriceInput(formatPrice(prevMin));
+            setMinPriceInput(formatPrice(clampedValue));
+            return prevMin; // max becomes old min
+          } else {
+            // Normal case: max is within range
+            setMaxPriceInput(formatPrice(clampedValue));
+            return clampedValue;
+          }
+        });
+        // Update min if it was swapped
+        if (clampedValue < prevMin) {
+          return clampedValue; // min becomes new value
+        }
+        return prevMin;
+      });
     }
   };
 

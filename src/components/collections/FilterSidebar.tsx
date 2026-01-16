@@ -13,8 +13,15 @@ export interface FilterOption {
   count?: number;
 }
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("vi-VN").format(price);
+// Cache formatPrice function (7.4) - Module-level cache for repeated calls
+const formatPriceCache = new Map<number, string>();
+const formatPrice = (price: number): string => {
+  if (formatPriceCache.has(price)) {
+    return formatPriceCache.get(price)!;
+  }
+  const formatted = new Intl.NumberFormat("vi-VN").format(price);
+  formatPriceCache.set(price, formatted);
+  return formatted;
 };
 
 interface FilterSidebarProps {
@@ -54,22 +61,28 @@ export default function FilterSidebar({
   const recipientsDropdownRef = useRef<HTMLDivElement>(null);
   const priceModalRef = useRef<HTMLDivElement>(null);
 
-  // Reset tempPriceFilter when modal opens
+  // Reset tempPriceFilter when modal opens - Narrow dependencies (5.3)
   useEffect(() => {
     if (isPriceModalOpen) {
       setTempPriceFilter(priceFilter);
     }
-  }, [isPriceModalOpen, priceFilter]);
+  }, [isPriceModalOpen, priceFilter.min, priceFilter.max]);
 
-  // Reset tempOccasions and tempRecipients when dropdown opens
+  // Reset tempOccasions and tempRecipients when dropdown opens - Narrow dependencies (5.3)
+  // Only update when dropdown opens, sync values at that moment
+  const isOccasionsOpen = openDropdown === "occasions";
   useEffect(() => {
-    if (openDropdown === "occasions") {
+    if (isOccasionsOpen) {
       setTempOccasions(selectedOccasions);
     }
-    if (openDropdown === "recipients") {
+  }, [isOccasionsOpen, selectedOccasions]); // Update when dropdown opens
+
+  const isRecipientsOpen = openDropdown === "recipients";
+  useEffect(() => {
+    if (isRecipientsOpen) {
       setTempRecipients(selectedRecipients);
     }
-  }, [openDropdown, selectedOccasions, selectedRecipients]);
+  }, [isRecipientsOpen, selectedRecipients]); // Update when dropdown opens
 
   // Close dropdown when clicking outside
   useEffect(() => {

@@ -2,6 +2,8 @@
 
 "use client";
 
+import { useMemo } from "react";
+
 interface QuickFiltersProps {
   activeFilters: Array<{ label: string; value: string; type: string }>;
   onRemoveFilter: (type: string, value: string) => void;
@@ -17,14 +19,24 @@ export default function QuickFilters({
     return null;
   }
 
-  // Group filters by type
-  const groupedFilters = activeFilters.reduce((acc, filter) => {
-    if (!acc[filter.type]) {
-      acc[filter.type] = [];
+  // Group filters by type - Use Map for better performance (7.11)
+  const groupedFilters = useMemo(() => {
+    const groups = new Map<string, typeof activeFilters>();
+    for (const filter of activeFilters) {
+      const existing = groups.get(filter.type);
+      if (existing) {
+        existing.push(filter);
+      } else {
+        groups.set(filter.type, [filter]);
+      }
     }
-    acc[filter.type].push(filter);
-    return acc;
-  }, {} as Record<string, typeof activeFilters>);
+    // Convert to object for compatibility
+    const result: Record<string, typeof activeFilters> = {};
+    for (const [type, filters] of groups) {
+      result[type] = filters;
+    }
+    return result;
+  }, [activeFilters]);
 
   return (
     <div className="flex items-center gap-3 flex-wrap mb-4">

@@ -43,8 +43,8 @@ export default function CollectionsClient({
   const [isPending, startTransition] = useTransition();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Get initial state from URL params
-  const getInitialState = () => {
+  // Get initial state from URL params - Use lazy initialization (5.6)
+  const [state, setState] = useState(() => {
     const sortBy = (searchParams.get("sort") as SortOption) || "FEATURED";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const occasion = searchParams.get("occasion") || "";
@@ -63,9 +63,7 @@ export default function CollectionsClient({
       selectedRecipients: recipient ? [recipient] : [],
       priceFilter: { min: minPrice, max: maxPrice },
     };
-  };
-
-  const [state, setState] = useState(getInitialState());
+  });
   const [products, setProducts] = useState(initialProducts);
   const [currentTotalCount, setCurrentTotalCount] = useState(totalCount);
   const [previousProducts, setPreviousProducts] = useState<Product[]>([]); // Keep previous data while loading
@@ -73,46 +71,51 @@ export default function CollectionsClient({
   // Ref to track if we're updating URL from internal state (to avoid triggering useEffect from URL changes)
   const isInternalUpdateRef = useRef(false);
 
-  // Update URL params without triggering navigation
+  // Update URL params without triggering navigation - Defer state reads (5.1)
   const updateURL = useCallback(
     (updates: Partial<typeof state>) => {
       isInternalUpdateRef.current = true; // Mark as internal update
 
-      const params = new URLSearchParams(searchParams.toString());
+      // Read searchParams on demand instead of subscribing to all changes
+      const currentParams = new URLSearchParams(
+        typeof window !== "undefined"
+          ? window.location.search
+          : searchParams.toString()
+      );
 
-      if (updates.sortBy) params.set("sort", updates.sortBy);
+      if (updates.sortBy) currentParams.set("sort", updates.sortBy);
       if (updates.page && updates.page > 1) {
-        params.set("page", updates.page.toString());
+        currentParams.set("page", updates.page.toString());
       } else {
-        params.delete("page");
+        currentParams.delete("page");
       }
       if (updates.selectedOccasions && updates.selectedOccasions.length > 0) {
-        params.set("occasion", updates.selectedOccasions[0]);
+        currentParams.set("occasion", updates.selectedOccasions[0]);
       } else {
-        params.delete("occasion");
+        currentParams.delete("occasion");
       }
       if (updates.selectedRecipients && updates.selectedRecipients.length > 0) {
-        params.set("recipient", updates.selectedRecipients[0]);
+        currentParams.set("recipient", updates.selectedRecipients[0]);
       } else {
-        params.delete("recipient");
+        currentParams.delete("recipient");
       }
       if (updates.priceFilter) {
         if (updates.priceFilter.min !== priceRange.min) {
-          params.set("minPrice", updates.priceFilter.min.toString());
+          currentParams.set("minPrice", updates.priceFilter.min.toString());
         } else {
-          params.delete("minPrice");
+          currentParams.delete("minPrice");
         }
         if (updates.priceFilter.max !== priceRange.max) {
-          params.set("maxPrice", updates.priceFilter.max.toString());
+          currentParams.set("maxPrice", updates.priceFilter.max.toString());
         } else {
-          params.delete("maxPrice");
+          currentParams.delete("maxPrice");
         }
       }
 
       // Use window.history.replaceState to update URL without triggering Next.js navigation
       // This prevents GET request, only POST from useEffect will be called
       if (typeof window !== "undefined") {
-        const newUrl = `/collections/${collectionHandle}?${params.toString()}`;
+        const newUrl = `/collections/${collectionHandle}?${currentParams.toString()}`;
         window.history.replaceState(
           { ...window.history.state, as: newUrl, url: newUrl },
           "",
@@ -125,17 +128,28 @@ export default function CollectionsClient({
         isInternalUpdateRef.current = false;
       }, 0);
     },
-    [collectionHandle, searchParams, priceRange]
+    [collectionHandle, priceRange, searchParams]
   );
 
   // Price filter with debounce (after updateURL is defined)
+  // Calculate initial price range from URL params
+  const initialPriceRange = useMemo(() => {
+    const minPrice = searchParams.get("minPrice")
+      ? parseFloat(searchParams.get("minPrice")!)
+      : priceRange.min;
+    const maxPrice = searchParams.get("maxPrice")
+      ? parseFloat(searchParams.get("maxPrice")!)
+      : priceRange.max;
+    return { min: minPrice, max: maxPrice };
+  }, [searchParams, priceRange]);
+
   const {
     localRange: priceFilter,
     appliedRange: appliedPriceRange,
     isPending: isPriceFilterPending,
     handleRangeChange: handlePriceRangeChange,
   } = usePriceFilter({
-    initialRange: getInitialState().priceFilter,
+    initialRange: initialPriceRange,
     onApply: (range) => {
       setState((prev) => ({
         ...prev,
@@ -272,76 +286,83 @@ export default function CollectionsClient({
     priceRange,
   ]);
 
-  const handleSortChange = (sort: SortOption) => {
-    setState((prev) => ({ ...prev, sortBy: sort, page: 1 }));
-    updateURL({ sortBy: sort, page: 1 });
-  };
+  const handleSortChange = useCallback(
+    (sort: SortOption) => {
+      setState((prev) => ({ ...prev, sortBy: sort, page: 1 }));
+      updateURL({ sortBy: sort, page: 1 });
+    },
+    [updateURL]
+  );
 
-  const handleOccasionChange = (value: string) => {
-    setState((prev) => {
-      const newOccasions = prev.selectedOccasions.includes(value)
-        ? prev.selectedOccasions.filter((v) => v !== value)
-        : [...prev.selectedOccasions, value];
-      return {
-        ...prev,
-        selectedOccasions: newOccasions,
-        page: 1,
-      };
-    });
-    // Update URL with first occasion or empty
-    const newOccasions = state.selectedOccasions.includes(value)
-      ? state.selectedOccasions.filter((v) => v !== value)
-      : [...state.selectedOccasions, value];
-    updateURL({
-      selectedOccasions: newOccasions.length > 0 ? [newOccasions[0]] : [],
-      page: 1,
-    });
-  };
-
-  const handleRecipientChange = (value: string) => {
-    setState((prev) => {
-      const newRecipients = prev.selectedRecipients.includes(value)
-        ? prev.selectedRecipients.filter((v) => v !== value)
-        : [...prev.selectedRecipients, value];
-      return {
-        ...prev,
-        selectedRecipients: newRecipients,
-        page: 1,
-      };
-    });
-    // Update URL with first recipient or empty
-    const newRecipients = state.selectedRecipients.includes(value)
-      ? state.selectedRecipients.filter((v) => v !== value)
-      : [...state.selectedRecipients, value];
-    updateURL({
-      selectedRecipients: newRecipients.length > 0 ? [newRecipients[0]] : [],
-      page: 1,
-    });
-  };
-
-  const handleRemoveFilter = (type: string, value: string) => {
-    if (type === "occasion") {
-      setState((prev) => ({
-        ...prev,
-        selectedOccasions: [],
-        page: 1,
-      }));
-      updateURL({ selectedOccasions: [], page: 1 });
-    } else if (type === "recipient") {
-      setState((prev) => ({
-        ...prev,
-        selectedRecipients: [],
-        page: 1,
-      }));
-      updateURL({ selectedRecipients: [], page: 1 });
-    } else if (type === "price") {
-      handlePriceRangeChange(priceRange);
-      updateURL({
-        priceFilter: priceRange,
-        page: 1,
+  const handleOccasionChange = useCallback(
+    (value: string) => {
+      setState((prev) => {
+        const newOccasions = prev.selectedOccasions.includes(value)
+          ? prev.selectedOccasions.filter((v) => v !== value)
+          : [...prev.selectedOccasions, value];
+        // Update URL with first occasion or empty
+        updateURL({
+          selectedOccasions: newOccasions.length > 0 ? [newOccasions[0]] : [],
+          page: 1,
+        });
+        return {
+          ...prev,
+          selectedOccasions: newOccasions,
+          page: 1,
+        };
       });
-    }
-  };
+    },
+    [updateURL]
+  );
+
+  const handleRecipientChange = useCallback(
+    (value: string) => {
+      setState((prev) => {
+        const newRecipients = prev.selectedRecipients.includes(value)
+          ? prev.selectedRecipients.filter((v) => v !== value)
+          : [...prev.selectedRecipients, value];
+        // Update URL with first recipient or empty
+        updateURL({
+          selectedRecipients:
+            newRecipients.length > 0 ? [newRecipients[0]] : [],
+          page: 1,
+        });
+        return {
+          ...prev,
+          selectedRecipients: newRecipients,
+          page: 1,
+        };
+      });
+    },
+    [updateURL]
+  );
+
+  const handleRemoveFilter = useCallback(
+    (type: string, value: string) => {
+      if (type === "occasion") {
+        setState((prev) => ({
+          ...prev,
+          selectedOccasions: [],
+          page: 1,
+        }));
+        updateURL({ selectedOccasions: [], page: 1 });
+      } else if (type === "recipient") {
+        setState((prev) => ({
+          ...prev,
+          selectedRecipients: [],
+          page: 1,
+        }));
+        updateURL({ selectedRecipients: [], page: 1 });
+      } else if (type === "price") {
+        handlePriceRangeChange(priceRange);
+        updateURL({
+          priceFilter: priceRange,
+          page: 1,
+        });
+      }
+    },
+    [updateURL, handlePriceRangeChange, priceRange]
+  );
 
   const handleClearAll = () => {
     setState((prev) => ({
@@ -366,45 +387,64 @@ export default function CollectionsClient({
     }
   };
 
-  const handlePageChange = (page: number) => {
-    setState((prev) => ({ ...prev, page }));
-    updateURL({ page });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setState((prev) => ({ ...prev, page }));
+      updateURL({ page });
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    },
+    [updateURL]
+  );
 
-  // Build active filters for QuickFilters component
-  const activeFilters = useMemo(
-    () => [
-      ...state.selectedOccasions.map((val) => ({
-        label: occasions.find((o) => o.value === val)?.label || val,
+  // Build active filters for QuickFilters component - Use Map for O(1) lookups (7.11)
+  const activeFilters = useMemo(() => {
+    // Create Maps for O(1) lookups instead of O(n) find operations
+    const occasionMap = new Map(occasions.map((o) => [o.value, o.label]));
+    const recipientMap = new Map(recipients.map((r) => [r.value, r.label]));
+
+    const filters: Array<{ label: string; value: string; type: string }> = [];
+
+    // Add occasions
+    for (const val of state.selectedOccasions) {
+      filters.push({
+        label: occasionMap.get(val) || val,
         value: val,
         type: "occasion",
-      })),
-      ...state.selectedRecipients.map((val) => ({
-        label: recipients.find((r) => r.value === val)?.label || val,
+      });
+    }
+
+    // Add recipients
+    for (const val of state.selectedRecipients) {
+      filters.push({
+        label: recipientMap.get(val) || val,
         value: val,
         type: "recipient",
-      })),
-      ...(appliedPriceRange.min !== priceRange.min ||
+      });
+    }
+
+    // Add price filter if active
+    if (
+      appliedPriceRange.min !== priceRange.min ||
       appliedPriceRange.max !== priceRange.max
-        ? [
-            {
-              label: `$${appliedPriceRange.min} - $${appliedPriceRange.max}`,
-              value: "price",
-              type: "price",
-            },
-          ]
-        : []),
-    ],
-    [
-      state.selectedOccasions,
-      state.selectedRecipients,
-      appliedPriceRange,
-      priceRange,
-      occasions,
-      recipients,
-    ]
-  );
+    ) {
+      filters.push({
+        label: `$${appliedPriceRange.min} - $${appliedPriceRange.max}`,
+        value: "price",
+        type: "price",
+      });
+    }
+
+    return filters;
+  }, [
+    state.selectedOccasions,
+    state.selectedRecipients,
+    appliedPriceRange,
+    priceRange,
+    occasions,
+    recipients,
+  ]);
 
   const totalPages = Math.ceil(currentTotalCount / 16);
 
