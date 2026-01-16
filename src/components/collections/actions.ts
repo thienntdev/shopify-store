@@ -2,6 +2,7 @@
 
 "use server";
 
+import { cache } from "react";
 import { getCollectionProductsWithPagination } from "@/libs/shopify";
 import { Product, PageInfo } from "@/libs/shopify/types";
 
@@ -29,7 +30,10 @@ export interface CollectionProductsResult {
 }
 
 // Helper function to convert SortOption to Shopify sortKey and reverse
-function getSortParams(sortBy: SortOption): { sortKey: string; reverse: boolean } {
+function getSortParams(sortBy: SortOption): {
+  sortKey: string;
+  reverse: boolean;
+} {
   switch (sortBy) {
     case "FEATURED":
       return { sortKey: "MANUAL", reverse: false };
@@ -52,111 +56,119 @@ function getSortParams(sortBy: SortOption): { sortKey: string; reverse: boolean 
   }
 }
 
-export async function getFilteredCollectionProducts(
-  collectionHandle: string,
-  options: {
-    sortBy?: SortOption;
-    reverse?: boolean;
-    page?: number;
-    pageSize?: number;
-    filters?: CollectionFilters;
-    after?: string;
-  }
-): Promise<CollectionProductsResult> {
-  const {
-    sortBy = "FEATURED",
-    reverse: reverseParam,
-    page = 1,
-    pageSize = 16,
-    after,
-    filters,
-  } = options;
+/**
+ * Simple function to get filtered collection products
+ * - Fetches a larger batch of products
+ * - Filters tags and price client-side (Shopify API limitation)
+ * - Paginates filtered results
+ * - Cached with React.cache() for per-request deduplication
+ */
+export const getFilteredCollectionProducts = cache(
+  async (
+    collectionHandle: string,
+    options: {
+      sortBy?: SortOption;
+      page?: number;
+      pageSize?: number;
+      filters?: CollectionFilters;
+      after?: string;
+    }
+  ): Promise<CollectionProductsResult> => {
+    const {
+      sortBy = "FEATURED",
+      page = 1,
+      pageSize = 16,
+      after,
+      filters,
+    } = options;
 
-  // Get sort parameters from sortBy option
-  const { sortKey, reverse } = getSortParams(sortBy);
+    // Get sort parameters
+    const { sortKey, reverse } = getSortParams(sortBy);
 
-  // Build query string for filtering by tags
-  let query = "";
-  const tagFilters: string[] = [];
+    const hasPriceFilter =
+      filters?.minPrice !== undefined || filters?.maxPrice !== undefined;
+    const hasTagFilter =
+      (filters?.occasions && filters.occasions.length > 0) ||
+      (filters?.recipients && filters.recipients.length > 0);
 
-  if (filters?.occasions && filters.occasions.length > 0) {
-    tagFilters.push(...filters.occasions.map((tag) => `tag:${tag}`));
-  }
-
-  if (filters?.recipients && filters.recipients.length > 0) {
-    tagFilters.push(...filters.recipients.map((tag) => `tag:${tag}`));
-  }
-
-  // Fetch products with pagination - fetch more to handle filtering and pagination
-  // We fetch more products to account for filtering, then paginate client-side
-  const fetchSize = pageSize * 10; // Fetch 10x pageSize to handle filtering and multiple pages
-  const result = await getCollectionProductsWithPagination({
-    collection: collectionHandle,
-    sortKey,
-    reverse,
-    first: fetchSize,
-    after,
-  });
-
-  // Filter by price range on the server side (since Shopify GraphQL doesn't support price filtering directly)
-  let filteredProducts = result.products;
-
-  if (filters?.minPrice !== undefined || filters?.maxPrice !== undefined) {
-    filteredProducts = result.products.filter((product) => {
-      const minPrice = parseFloat(
-        product.priceRange?.minVariantPrice?.amount || "0"
-      );
-      const maxPrice = parseFloat(
-        product.priceRange?.maxVariantPrice?.amount || "0"
-      );
-
-      if (filters.minPrice !== undefined && maxPrice < filters.minPrice) {
-        return false;
-      }
-
-      if (filters.maxPrice !== undefined && minPrice > filters.maxPrice) {
-        return false;
-      }
-
-      return true;
+    // Fetch a larger batch to account for filtering
+    // Multiply by 10x to ensure we have enough products after filtering
+    const fetchSize = pageSize * 10;
+    const result = await getCollectionProductsWithPagination({
+      collection: collectionHandle,
+      sortKey,
+      reverse,
+      first: fetchSize,
+      after,
     });
-  }
 
-  // Filter by tags if needed (Shopify query doesn't support multiple tag filters well)
-  // We'll filter on server side for now
-  if (tagFilters.length > 0) {
-    filteredProducts = filteredProducts.filter((product) => {
-      const productTags = product.tags || [];
+    // Filter by tags and price (client-side filtering)
+    let filteredProducts = result.products;
 
-      // Check occasions
-      if (filters?.occasions && filters.occasions.length > 0) {
-        const hasOccasion = filters.occasions.some((tag) =>
-          productTags.some((pt) => pt.toLowerCase().includes(tag.toLowerCase()))
+    // Filter by tags
+    if (hasTagFilter) {
+      filteredProducts = filteredProducts.filter((product) => {
+        const productTags = product.tags || [];
+
+        // Check occasions
+        if (filters?.occasions && filters.occasions.length > 0) {
+          const hasOccasion = filters.occasions.some((tag) =>
+            productTags.some((pt) =>
+              pt.toLowerCase().includes(tag.toLowerCase())
+            )
+          );
+          if (!hasOccasion) return false;
+        }
+
+        // Check recipients
+        if (filters?.recipients && filters.recipients.length > 0) {
+          const hasRecipient = filters.recipients.some((tag) =>
+            productTags.some((pt) =>
+              pt.toLowerCase().includes(tag.toLowerCase())
+            )
+          );
+          if (!hasRecipient) return false;
+        }
+
+        return true;
+      });
+    }
+
+    // Filter by price
+    if (hasPriceFilter) {
+      filteredProducts = filteredProducts.filter((product) => {
+        const minPrice = parseFloat(
+          product.priceRange?.minVariantPrice?.amount || "0"
         );
-        if (!hasOccasion) return false;
-      }
-
-      // Check recipients
-      if (filters?.recipients && filters.recipients.length > 0) {
-        const hasRecipient = filters.recipients.some((tag) =>
-          productTags.some((pt) => pt.toLowerCase().includes(tag.toLowerCase()))
+        const maxPrice = parseFloat(
+          product.priceRange?.maxVariantPrice?.amount || "0"
         );
-        if (!hasRecipient) return false;
-      }
 
-      return true;
-    });
+        if (filters?.minPrice !== undefined && maxPrice < filters.minPrice) {
+          return false;
+        }
+
+        if (filters?.maxPrice !== undefined && minPrice > filters.maxPrice) {
+          return false;
+        }
+
+        return true;
+      });
+    }
+
+    // Paginate the filtered results
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+    return {
+      products: paginatedProducts,
+      pageInfo: {
+        hasNextPage: filteredProducts.length > endIndex,
+        hasPreviousPage: page > 1,
+        endCursor: result.pageInfo.endCursor,
+      },
+      totalCount: filteredProducts.length,
+    };
   }
-
-  // Paginate filtered products based on page number
-  const currentPage = page || 1;
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-
-  return {
-    products: paginatedProducts,
-    pageInfo: result.pageInfo,
-    totalCount: filteredProducts.length, // Total count after filtering
-  };
-}
+);
