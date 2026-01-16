@@ -4,6 +4,8 @@
 
 import { useEffect, useState } from "react";
 import FilterSidebar, { FilterOption } from "./FilterSidebar";
+import IconButton from "../ui/IconButton";
+import CloseIcon from "../ui/CloseIcon";
 
 interface MobileFilterModalProps {
   isOpen: boolean;
@@ -39,7 +41,9 @@ export default function MobileFilterModal({
   // Local state for temporary filter values (only apply when clicking Apply button)
   // Use lazy state initialization (5.6)
   const [tempOccasions, setTempOccasions] = useState(() => selectedOccasions);
-  const [tempRecipients, setTempRecipients] = useState(() => selectedRecipients);
+  const [tempRecipients, setTempRecipients] = useState(
+    () => selectedRecipients
+  );
   const [tempPriceFilter, setTempPriceFilter] = useState<{
     min: number;
     max: number;
@@ -196,25 +200,13 @@ export default function MobileFilterModal({
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 p-3 flex items-center justify-between z-10 shadow-sm">
           <h2 className="text-base font-semibold text-gray-900">Filters</h2>
-          <button
+          <IconButton
+            icon={<CloseIcon size="lg" />}
+            label="Close filters"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label="Close filters"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+            variant="ghost"
+            size="lg"
+          />
         </div>
 
         {/* Filter Content */}

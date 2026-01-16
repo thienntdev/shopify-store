@@ -14,13 +14,14 @@ import { useSearchParams } from "next/navigation";
 import { Product } from "@/libs/shopify/types";
 import ProductCard from "../product/ProductCard";
 import FilterSidebar, { FilterOption } from "./FilterSidebar";
-import QuickFilters from "./QuickFilters";
+import ActiveFiltersChips from "./ActiveFiltersChips";
 import SortAndView, { SortOption } from "./SortAndView";
 import Pagination from "./Pagination";
 import MobileFilterModal from "./MobileFilterModal";
 import { getFilteredCollectionProducts, CollectionFilters } from "./actions";
 import { usePriceFilter } from "@/hooks/usePriceFilter";
 import BreadCrumbs from "../ui/nav/BreadCrumbs";
+import FilterIcon from "../ui/FilterIcon";
 
 interface CollectionsClientProps {
   initialProducts: Product[];
@@ -493,19 +494,7 @@ export default function CollectionsClient({
           onClick={() => setIsMobileFilterOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-            />
-          </svg>
+          <FilterIcon size="md" />
           <span>Filters</span>
         </button>
 
@@ -546,8 +535,8 @@ export default function CollectionsClient({
           />
         </div>
 
-        {/* Quick Filters */}
-        <QuickFilters
+        {/* Active Filters Chips */}
+        <ActiveFiltersChips
           activeFilters={activeFilters}
           onRemoveFilter={handleRemoveFilter}
           onClearAll={handleClearAll}

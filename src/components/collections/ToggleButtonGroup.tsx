@@ -2,25 +2,23 @@
 
 "use client";
 
-export interface FilterOption {
-  value: string;
-  label: string;
-  count?: number;
-}
+import { FilterOption } from "./types";
 
-interface FilterOptionButtonsProps {
+interface ToggleButtonGroupProps {
   options: FilterOption[];
   selectedValues: string[];
   onToggle: (value: string) => void;
+  className?: string;
 }
 
-export default function FilterOptionButtons({
+export default function ToggleButtonGroup({
   options,
   selectedValues,
   onToggle,
-}: FilterOptionButtonsProps) {
+  className = "",
+}: ToggleButtonGroupProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className={`flex flex-wrap gap-2 ${className}`}>
       {options.map((option) => {
         const isSelected = selectedValues.includes(option.value);
         return (
@@ -36,9 +34,7 @@ export default function FilterOptionButtons({
           >
             {option.label}
             {option.count !== undefined && (
-              <span className="ml-1 text-xs opacity-80">
-                ({option.count})
-              </span>
+              <span className="ml-1 text-xs opacity-80">({option.count})</span>
             )}
           </button>
         );

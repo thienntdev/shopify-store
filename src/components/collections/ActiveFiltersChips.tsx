@@ -3,18 +3,20 @@
 "use client";
 
 import { useMemo } from "react";
+import { getFilterTypeLabel } from "./constants";
+import { ActiveFilter } from "./types";
 
-interface QuickFiltersProps {
-  activeFilters: Array<{ label: string; value: string; type: string }>;
+interface ActiveFiltersChipsProps {
+  activeFilters: ActiveFilter[];
   onRemoveFilter: (type: string, value: string) => void;
   onClearAll: () => void;
 }
 
-export default function QuickFilters({
+export default function ActiveFiltersChips({
   activeFilters,
   onRemoveFilter,
   onClearAll,
-}: QuickFiltersProps) {
+}: ActiveFiltersChipsProps) {
   if (activeFilters.length === 0) {
     return null;
   }
@@ -41,15 +43,7 @@ export default function QuickFilters({
   return (
     <div className="flex items-center gap-3 flex-wrap mb-4">
       {Object.entries(groupedFilters).map(([type, filters]) => {
-        // Get type label
-        const typeLabel =
-          type === "occasion"
-            ? "Occasions:"
-            : type === "recipient"
-            ? "Recipients:"
-            : type === "price"
-            ? "Price:"
-            : `${type}:`;
+        const typeLabel = getFilterTypeLabel(type);
 
         return (
           <div
@@ -82,7 +76,7 @@ export default function QuickFilters({
               ))}
             </div>
 
-            {/* Close button */}
+            {/* Close button - Remove all filters of this type */}
             <button
               onClick={() => {
                 filters.forEach((filter) =>

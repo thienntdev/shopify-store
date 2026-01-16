@@ -4,16 +4,7 @@
 
 import { useState, useEffect, useRef } from "react";
 
-// Cache formatPrice function (7.4) - Module-level cache for repeated calls
-const formatPriceCache = new Map<number, string>();
-const formatPrice = (price: number): string => {
-  if (formatPriceCache.has(price)) {
-    return formatPriceCache.get(price)!;
-  }
-  const formatted = new Intl.NumberFormat("vi-VN").format(price);
-  formatPriceCache.set(price, formatted);
-  return formatted;
-};
+import { formatPrice, formatPriceWithCurrency } from "@/utils/format";
 
 interface PriceRangeSliderProps {
   priceRange: { min: number; max: number };
@@ -334,7 +325,11 @@ export default function PriceRangeSlider({
           <input
             type="text"
             value={
-              minPriceInput ? minPriceInput + "₫" : formatPrice(actualMin) + "₫"
+              minPriceInput
+                ? formatPriceWithCurrency(
+                    parseFloat(minPriceInput.replace(/[^\d]/g, "")) || actualMin
+                  )
+                : formatPriceWithCurrency(actualMin)
             }
             onChange={(e) => handlePriceInputChange("min", e.target.value)}
             onBlur={() => {
@@ -347,7 +342,7 @@ export default function PriceRangeSlider({
               handlePriceSliderChange("slider1", clamped);
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-            placeholder={formatPrice(priceRange.min) + "₫"}
+            placeholder={formatPriceWithCurrency(priceRange.min)}
           />
         </div>
         <span className="text-gray-500">-</span>
@@ -355,7 +350,11 @@ export default function PriceRangeSlider({
           <input
             type="text"
             value={
-              maxPriceInput ? maxPriceInput + "₫" : formatPrice(actualMax) + "₫"
+              maxPriceInput
+                ? formatPriceWithCurrency(
+                    parseFloat(maxPriceInput.replace(/[^\d]/g, "")) || actualMax
+                  )
+                : formatPriceWithCurrency(actualMax)
             }
             onChange={(e) => handlePriceInputChange("max", e.target.value)}
             onBlur={() => {
@@ -368,7 +367,7 @@ export default function PriceRangeSlider({
               handlePriceSliderChange("slider2", clamped);
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-            placeholder={formatPrice(priceRange.max) + "₫"}
+            placeholder={formatPriceWithCurrency(priceRange.max)}
           />
         </div>
       </div>

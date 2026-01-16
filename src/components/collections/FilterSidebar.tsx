@@ -4,25 +4,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import PriceRangeSlider from "./PriceRangeSlider";
-import FilterOptionButtons from "./FilterOptionButtons";
+import ToggleButtonGroup from "./ToggleButtonGroup";
+import FilterSectionHeader from "../ui/FilterSectionHeader";
+import ChevronDownIcon from "../ui/ChevronDownIcon";
+import { FilterOption } from "./types";
 
-// Re-export FilterOption for backward compatibility
-export interface FilterOption {
-  value: string;
-  label: string;
-  count?: number;
-}
-
-// Cache formatPrice function (7.4) - Module-level cache for repeated calls
-const formatPriceCache = new Map<number, string>();
-const formatPrice = (price: number): string => {
-  if (formatPriceCache.has(price)) {
-    return formatPriceCache.get(price)!;
-  }
-  const formatted = new Intl.NumberFormat("vi-VN").format(price);
-  formatPriceCache.set(price, formatted);
-  return formatted;
-};
+// Re-export for backward compatibility
+export type { FilterOption };
 
 interface FilterSidebarProps {
   occasions: FilterOption[];
@@ -151,9 +139,7 @@ export default function FilterSidebar({
       <div className="lg:hidden space-y-6">
         {/* Price Range Section - First */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">
-            Price Range
-          </h3>
+          <FilterSectionHeader title="Price Range" />
           <PriceRangeSlider
             priceRange={priceRange}
             priceFilter={priceFilter}
@@ -163,10 +149,8 @@ export default function FilterSidebar({
 
         {/* Occasions Section */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">
-            Occasions
-          </h3>
-          <FilterOptionButtons
+          <FilterSectionHeader title="Occasions" />
+          <ToggleButtonGroup
             options={occasions}
             selectedValues={selectedOccasions}
             onToggle={onOccasionChange}
@@ -175,10 +159,8 @@ export default function FilterSidebar({
 
         {/* Recipients Section */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">
-            Recipients
-          </h3>
-          <FilterOptionButtons
+          <FilterSectionHeader title="Recipients" />
+          <ToggleButtonGroup
             options={recipients}
             selectedValues={selectedRecipients}
             onToggle={onRecipientChange}
@@ -205,27 +187,13 @@ export default function FilterSidebar({
               <span className="text-sm font-medium">
                 {getSelectedOccasionLabel()}
               </span>
-              <svg
-                className={`w-4 h-4 transition-transform ${
-                  openDropdown === "occasions" ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              <ChevronDownIcon isOpen={openDropdown === "occasions"} />
             </button>
 
             {/* Occasions Dropdown */}
             {openDropdown === "occasions" && (
               <div className="absolute top-full left-0 mt-2 w-auto min-w-96 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4">
-                <FilterOptionButtons
+                <ToggleButtonGroup
                   options={occasions}
                   selectedValues={tempOccasions}
                   onToggle={(value) => {
@@ -281,27 +249,13 @@ export default function FilterSidebar({
               <span className="text-sm font-medium">
                 {getSelectedRecipientLabel()}
               </span>
-              <svg
-                className={`w-4 h-4 transition-transform ${
-                  openDropdown === "recipients" ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              <ChevronDownIcon isOpen={openDropdown === "recipients"} />
             </button>
 
             {/* Recipients Dropdown */}
             {openDropdown === "recipients" && (
               <div className="absolute top-full left-0 mt-2 w-auto min-w-96 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4">
-                <FilterOptionButtons
+                <ToggleButtonGroup
                   options={recipients}
                   selectedValues={tempRecipients}
                   onToggle={(value) => {
