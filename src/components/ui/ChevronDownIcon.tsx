@@ -1,7 +1,5 @@
 /** @format */
 
-"use client";
-
 interface ChevronDownIconProps {
   className?: string;
   size?: "sm" | "md" | "lg";

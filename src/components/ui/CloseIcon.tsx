@@ -1,7 +1,5 @@
 /** @format */
 
-"use client";
-
 interface CloseIconProps {
   className?: string;
   size?: "sm" | "md" | "lg";

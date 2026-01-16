@@ -7,6 +7,7 @@ import PriceRangeSlider from "./PriceRangeSlider";
 import ToggleButtonGroup from "./ToggleButtonGroup";
 import FilterSectionHeader from "../ui/FilterSectionHeader";
 import ChevronDownIcon from "../ui/ChevronDownIcon";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { FilterOption } from "./types";
 
 // Re-export for backward compatibility
@@ -72,37 +73,36 @@ export default function FilterSidebar({
     }
   }, [isRecipientsOpen, selectedRecipients]); // Update when dropdown opens
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        occasionsDropdownRef.current &&
-        !occasionsDropdownRef.current.contains(event.target as Node) &&
-        openDropdown === "occasions"
-      ) {
+  // Close dropdown when clicking outside - Use custom hook
+  useClickOutside(
+    occasionsDropdownRef,
+    () => {
+      if (openDropdown === "occasions") {
         setOpenDropdown(null);
       }
-      if (
-        recipientsDropdownRef.current &&
-        !recipientsDropdownRef.current.contains(event.target as Node) &&
-        openDropdown === "recipients"
-      ) {
+    },
+    openDropdown === "occasions"
+  );
+
+  useClickOutside(
+    recipientsDropdownRef,
+    () => {
+      if (openDropdown === "recipients") {
         setOpenDropdown(null);
       }
-      if (
-        priceModalRef.current &&
-        !priceModalRef.current.contains(event.target as Node) &&
-        isPriceModalOpen
-      ) {
+    },
+    openDropdown === "recipients"
+  );
+
+  useClickOutside(
+    priceModalRef,
+    () => {
+      if (isPriceModalOpen) {
         setIsPriceModalOpen(false);
       }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isPriceModalOpen, openDropdown]);
+    },
+    isPriceModalOpen
+  );
 
   const toggleDropdown = (type: "occasions" | "recipients" | "price") => {
     if (type === "price") {

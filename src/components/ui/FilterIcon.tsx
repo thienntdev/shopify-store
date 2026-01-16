@@ -1,7 +1,5 @@
 /** @format */
 
-"use client";
-
 interface FilterIconProps {
   className?: string;
   size?: "sm" | "md" | "lg";

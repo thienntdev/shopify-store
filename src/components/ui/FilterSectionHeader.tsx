@@ -1,7 +1,5 @@
 /** @format */
 
-"use client";
-
 interface FilterSectionHeaderProps {
   title: string;
   className?: string;
