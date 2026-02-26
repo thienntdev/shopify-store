@@ -32,6 +32,7 @@ export const getCollectionProductsQuery = /* GraphQL */ `
     $reverse: Boolean
     $first: Int = 24
     $after: String
+    $filters: [ProductFilter!]
   ) {
     collection(handle: $handle) {
       products(
@@ -39,7 +40,19 @@ export const getCollectionProductsQuery = /* GraphQL */ `
         reverse: $reverse
         first: $first
         after: $after
+        filters: $filters
       ) {
+        filters {
+          id
+          label
+          type
+          values {
+            id
+            label
+            count
+            input
+          }
+        }
         edges {
           node {
             ...product

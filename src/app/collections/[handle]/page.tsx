@@ -5,6 +5,7 @@ import {
   getCollectionByHandle,
   getCollectionProductsWithPagination,
 } from "@/libs/shopify";
+import { getFilteredCollectionProducts, CollectionFilters } from "@/components/collections/actions";
 import CollectionsClient from "@/components/collections/CollectionsClient";
 import { FilterOption } from "@/components/collections/FilterSidebar";
 import { notFound } from "next/navigation";
@@ -43,53 +44,54 @@ export async function generateMetadata({
 }
 
 // Helper function to extract filter options from products
-function extractFilterOptions(products: any[]) {
+function extractFilterOptions(products: any[], shopifyFilters?: any[]) {
   const occasions: Map<string, number> = new Map();
   const recipients: Map<string, number> = new Map();
   let minPrice = Infinity;
   let maxPrice = 0;
 
-  products.forEach((product) => {
-    // Extract price range
-    const productMinPrice = parseFloat(
-      product.priceRange?.minVariantPrice?.amount || "0"
-    );
-    const productMaxPrice = parseFloat(
-      product.priceRange?.maxVariantPrice?.amount || "0"
-    );
-    minPrice = Math.min(minPrice, productMinPrice);
-    maxPrice = Math.max(maxPrice, productMaxPrice);
-
-    // Extract tags for occasions and recipients
-    const tags = product.tags || [];
-    tags.forEach((tag: string) => {
-      const lowerTag = tag.toLowerCase();
-
-      // Check for occasions (you can customize these patterns)
-      if (
-        lowerTag.includes("halloween") ||
-        lowerTag.includes("valentine") ||
-        lowerTag.includes("christmas") ||
-        lowerTag.includes("birthday") ||
-        lowerTag.includes("anniversary")
-      ) {
-        const key = tag;
-        occasions.set(key, (occasions.get(key) || 0) + 1);
+  // Try to get price range from Shopify's native filters first (more accurate)
+  if (shopifyFilters) {
+    const priceFilter = shopifyFilters.find(f => f.type === 'PRICE_RANGE' || f.id === 'filter.v.price');
+    if (priceFilter && priceFilter.values && priceFilter.values.length > 0) {
+      try {
+        const input = JSON.parse(priceFilter.values[0].input);
+        if (input.price) {
+          if (input.price.min !== undefined) minPrice = input.price.min;
+          if (input.price.max !== undefined) maxPrice = input.price.max;
+        }
+      } catch (e) {
+        console.error("Error parsing price filter:", e);
       }
+    }
+  }
 
-      // Check for recipients (you can customize these patterns)
-      if (
-        lowerTag.includes("pet") ||
-        lowerTag.includes("family") ||
-        lowerTag.includes("wife") ||
-        lowerTag.includes("husband") ||
-        lowerTag.includes("friend")
-      ) {
-        const key = tag;
-        recipients.set(key, (recipients.get(key) || 0) + 1);
-      }
+  // If Shopify filters didn't provide range, or we need to fallback/refine
+  if (minPrice === Infinity || maxPrice === 0) {
+    products.forEach((product) => {
+      // Extract price range
+      const productMinPrice = parseFloat(
+        product.priceRange?.minVariantPrice?.amount || "0"
+      );
+      const productMaxPrice = parseFloat(
+        product.priceRange?.maxVariantPrice?.amount || "0"
+      );
+      minPrice = Math.min(minPrice, productMinPrice);
+      maxPrice = Math.max(maxPrice, productMaxPrice);
+
+      // Extract tags (already commented out in previous step, but keep logic for structure)
+      const tags = product.tags || [];
+      tags.forEach((tag: string) => {
+        const lowerTag = tag.toLowerCase();
+        if (lowerTag.includes("halloween") || lowerTag.includes("valentine") || lowerTag.includes("christmas") || lowerTag.includes("birthday") || lowerTag.includes("anniversary")) {
+          occasions.set(tag, (occasions.get(tag) || 0) + 1);
+        }
+        if (lowerTag.includes("pet") || lowerTag.includes("family") || lowerTag.includes("wife") || lowerTag.includes("husband") || lowerTag.includes("friend")) {
+          recipients.set(tag, (recipients.get(tag) || 0) + 1);
+        }
+      });
     });
-  });
+  }
 
   // Convert to FilterOption arrays
   const occasionOptions: FilterOption[] = Array.from(occasions.entries())
@@ -97,51 +99,21 @@ function extractFilterOptions(products: any[]) {
       value: value.toLowerCase().replace(/\s+/g, "-"),
       label: value,
       count,
-    }))
-    .slice(0, 10); // Limit to top 10
+    })).slice(0, 10);
 
   const recipientOptions: FilterOption[] = Array.from(recipients.entries())
     .map(([value, count]) => ({
       value: value.toLowerCase().replace(/\s+/g, "-"),
       label: value,
       count,
-    }))
-    .slice(0, 10); // Limit to top 10
-
-  // Add sample data if no data exists
-  const sampleOccasions: FilterOption[] = [
-    { value: "birthday", label: "Birthday", count: 25 },
-    { value: "anniversary", label: "Anniversary", count: 18 },
-    { value: "valentine", label: "Valentine's Day", count: 15 },
-  ];
-
-  const sampleRecipients: FilterOption[] = [
-    { value: "wife", label: "Wife", count: 32 },
-    { value: "husband", label: "Husband", count: 28 },
-    { value: "friend", label: "Friend", count: 20 },
-  ];
-
-  // Merge sample data with actual data, avoiding duplicates
-  const finalOccasions = [
-    ...occasionOptions,
-    ...sampleOccasions.filter(
-      (sample) => !occasionOptions.some((opt) => opt.value === sample.value)
-    ),
-  ].slice(0, 10);
-
-  const finalRecipients = [
-    ...recipientOptions,
-    ...sampleRecipients.filter(
-      (sample) => !recipientOptions.some((opt) => opt.value === sample.value)
-    ),
-  ].slice(0, 10);
+    })).slice(0, 10);
 
   return {
-    occasions: finalOccasions.length > 0 ? finalOccasions : sampleOccasions,
-    recipients: finalRecipients.length > 0 ? finalRecipients : sampleRecipients,
+    occasions: occasionOptions,
+    recipients: recipientOptions,
     priceRange: {
-      min: Math.floor(minPrice) || 0,
-      max: Math.ceil(maxPrice) || 1000000,
+      min: minPrice === Infinity ? 0 : Math.floor(minPrice),
+      max: maxPrice === 0 ? 1000 : Math.ceil(maxPrice),
     },
   };
 }
@@ -168,7 +140,7 @@ export default async function CollectionPage({
   });
 
   // Extract filter options from products
-  const filterOptions = extractFilterOptions(initialResult.products);
+  const filterOptions = extractFilterOptions(initialResult.products, initialResult.filters);
 
   // Calculate total count from all fetched products (approximate)
   let allProducts = initialResult.products;
@@ -185,85 +157,26 @@ export default async function CollectionPage({
     ? parseFloat(search.maxPrice)
     : filterOptions.priceRange.max;
 
-  // Build filters
-  const filters = {
+  // Build filters from search params
+  const filters: CollectionFilters = {
     occasions: occasion ? [occasion] : [],
     recipients: recipient ? [recipient] : [],
     minPrice: minPrice !== filterOptions.priceRange.min ? minPrice : undefined,
     maxPrice: maxPrice !== filterOptions.priceRange.max ? maxPrice : undefined,
   };
 
-  // Apply filters to all products to get accurate total count
-  let filteredAllProducts = allProducts;
-
-  // Filter by price
-  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-    filteredAllProducts = filteredAllProducts.filter((product) => {
-      const productMinPrice = parseFloat(
-        product.priceRange?.minVariantPrice?.amount || "0"
-      );
-      const productMaxPrice = parseFloat(
-        product.priceRange?.maxVariantPrice?.amount || "0"
-      );
-
-      if (
-        filters.minPrice !== undefined &&
-        productMaxPrice < filters.minPrice
-      ) {
-        return false;
-      }
-      if (
-        filters.maxPrice !== undefined &&
-        productMinPrice > filters.maxPrice
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }
-
-  // Filter by tags
-  if (filters.occasions.length > 0 || filters.recipients.length > 0) {
-    filteredAllProducts = filteredAllProducts.filter((product) => {
-      const productTags = product.tags || [];
-
-      if (filters.occasions.length > 0) {
-        const hasOccasion = filters.occasions.some((tag) =>
-          productTags.some((pt) => pt.toLowerCase().includes(tag.toLowerCase()))
-        );
-        if (!hasOccasion) return false;
-      }
-
-      if (filters.recipients.length > 0) {
-        const hasRecipient = filters.recipients.some((tag) =>
-          productTags.some((pt) => pt.toLowerCase().includes(tag.toLowerCase()))
-        );
-        if (!hasRecipient) return false;
-      }
-
-      return true;
-    });
-  }
-
-  // Calculate total count from filtered products
-  // If collection has productsCount, use it as base (but still need to filter)
-  // For now, we'll use filtered products length as it's more accurate with filters
-  // In the future, we could use collection.productsCount as a fallback
-  const totalCount = filteredAllProducts.length;
-
-  // Note: collection.productsCount gives total products in collection without filters
-  // For accurate filtered count, we still need to filter the fetched products
-
-  // Calculate pagination
-  const pageSize = 16;
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedProducts = filteredAllProducts.slice(startIndex, endIndex);
+  // Use the same function as client-side to get initial data
+  const result = await getFilteredCollectionProducts(handle, {
+    sortBy,
+    page,
+    pageSize: 16,
+    filters,
+  });
 
   return (
     <CollectionsClient
-      initialProducts={paginatedProducts}
-      totalCount={totalCount}
+      initialProducts={result.products}
+      totalCount={result.totalCount}
       collectionHandle={handle}
       occasions={filterOptions.occasions}
       recipients={filterOptions.recipients}

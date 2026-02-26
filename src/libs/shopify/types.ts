@@ -165,10 +165,15 @@ export type ConnectionWithPageInfo<T> = {
   pageInfo: PageInfo;
 };
 
+// Thêm ngay sau định nghĩa ConnectionWithPageInfo
+export type ConnectionWithFilters<T> = ConnectionWithPageInfo<T> & {
+  filters: Filter[];
+};
+
 export type ShopifyCollectionProductsOperation = {
   data: {
     collection: {
-      products: ConnectionWithPageInfo<ShopifyProduct>;
+      products: ConnectionWithFilters<ShopifyProduct>;
     };
   };
   variables: {
@@ -177,5 +182,36 @@ export type ShopifyCollectionProductsOperation = {
     sortKey?: string;
     first?: number;
     after?: string;
+    filters?: ProductFilter[];
   };
+};
+
+// types.ts
+export type ProductFilter = {
+  variantOption?: {
+    name: string;
+    value: string;
+  };
+  price?: {
+    min?: number;
+    max?: number;
+  };
+  productType?: string;
+  productVendor?: string;
+  tag?: string;
+  available?: boolean;
+};
+
+export type FilterValue = {
+  id: string;
+  label: string;
+  count: number; // Số sản phẩm match
+  input: string;
+};
+
+export type Filter = {
+  id: string;
+  label: string;
+  type: string;
+  values: FilterValue[];
 };

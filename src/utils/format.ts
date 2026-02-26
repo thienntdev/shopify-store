@@ -10,7 +10,7 @@ export function formatPrice(price: number): string {
   if (formatPriceCache.has(price)) {
     return formatPriceCache.get(price)!;
   }
-  const formatted = new Intl.NumberFormat("vi-VN").format(price);
+  const formatted = new Intl.NumberFormat("en-US").format(price);
   formatPriceCache.set(price, formatted);
   return formatted;
 }
@@ -20,7 +20,7 @@ export function formatPrice(price: number): string {
  */
 export function formatPriceWithCurrency(
   price: number,
-  currency: string = "₫"
+  currency: string = "$"
 ): string {
-  return `${formatPrice(price)}${currency}`;
+  return `${currency}${formatPrice(price)}`;
 }

@@ -321,54 +321,54 @@ export default function PriceRangeSlider({
     <div className="space-y-4">
       {/* Price Inputs */}
       <div className="flex items-center gap-3">
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <input
             type="text"
-            value={
-              minPriceInput
-                ? formatPriceWithCurrency(
-                    parseFloat(minPriceInput.replace(/[^\d]/g, "")) || actualMin
-                  )
-                : formatPriceWithCurrency(actualMin)
-            }
-            onChange={(e) => handlePriceInputChange("min", e.target.value)}
-            onBlur={() => {
-              const numValue =
-                parseFloat(minPriceInput.replace(/[^\d]/g, "")) || actualMin;
-              const clamped = Math.max(
-                priceRange.min,
-                Math.min(numValue, priceRange.max)
-              );
-              handlePriceSliderChange("slider1", clamped);
+            value={minPriceInput}
+            onChange={(e) => {
+              // Allow numbers and a single decimal point
+              const val = e.target.value.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
+              setMinPriceInput(val);
+              if (val !== "" && val !== ".") {
+                const numValue = parseFloat(val);
+                const clamped = Math.max(priceRange.min, Math.min(numValue, priceRange.max));
+                handlePriceSliderChange("slider1", clamped);
+              }
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-            placeholder={formatPriceWithCurrency(priceRange.min)}
+            onBlur={() => {
+              const numValue = parseFloat(minPriceInput) || actualMin;
+              const clamped = Math.max(priceRange.min, Math.min(numValue, priceRange.max));
+              handlePriceSliderChange("slider1", clamped);
+              setMinPriceInput(formatPrice(clamped));
+            }}
+            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
           />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
         </div>
         <span className="text-gray-500">-</span>
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <input
             type="text"
-            value={
-              maxPriceInput
-                ? formatPriceWithCurrency(
-                    parseFloat(maxPriceInput.replace(/[^\d]/g, "")) || actualMax
-                  )
-                : formatPriceWithCurrency(actualMax)
-            }
-            onChange={(e) => handlePriceInputChange("max", e.target.value)}
-            onBlur={() => {
-              const numValue =
-                parseFloat(maxPriceInput.replace(/[^\d]/g, "")) || actualMax;
-              const clamped = Math.max(
-                priceRange.min,
-                Math.min(numValue, priceRange.max)
-              );
-              handlePriceSliderChange("slider2", clamped);
+            value={maxPriceInput}
+            onChange={(e) => {
+              // Allow numbers and a single decimal point
+              const val = e.target.value.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
+              setMaxPriceInput(val);
+              if (val !== "" && val !== ".") {
+                const numValue = parseFloat(val);
+                const clamped = Math.max(priceRange.min, Math.min(numValue, priceRange.max));
+                handlePriceSliderChange("slider2", clamped);
+              }
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-            placeholder={formatPriceWithCurrency(priceRange.max)}
+            onBlur={() => {
+              const numValue = parseFloat(maxPriceInput) || actualMax;
+              const clamped = Math.max(priceRange.min, Math.min(numValue, priceRange.max));
+              handlePriceSliderChange("slider2", clamped);
+              setMaxPriceInput(formatPrice(clamped));
+            }}
+            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
           />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
         </div>
       </div>
 

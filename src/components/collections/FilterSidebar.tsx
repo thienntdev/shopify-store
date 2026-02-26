@@ -147,7 +147,8 @@ export default function FilterSidebar({
           />
         </div>
 
-        {/* Occasions Section */}
+        {/* Occasions Section - Temporarily hidden */}
+        {/*
         <div>
           <FilterSectionHeader title="Occasions" />
           <ToggleButtonGroup
@@ -156,8 +157,10 @@ export default function FilterSidebar({
             onToggle={onOccasionChange}
           />
         </div>
+        */}
 
-        {/* Recipients Section */}
+        {/* Recipients Section - Temporarily hidden */}
+        {/*
         <div>
           <FilterSectionHeader title="Recipients" />
           <ToggleButtonGroup
@@ -166,6 +169,7 @@ export default function FilterSidebar({
             onToggle={onRecipientChange}
           />
         </div>
+        */}
       </div>
 
       {/* Horizontal Filter Bar - Desktop Only */}
@@ -174,129 +178,19 @@ export default function FilterSidebar({
           <span className="text-sm font-semibold text-gray-700 mr-2">
             Filter by criteria:
           </span>
-          {/* Occasions Filter Button */}
+          {/* Occasions Filter Button - Temporarily hidden */}
+          {/*
           <div className="relative" ref={occasionsDropdownRef}>
-            <button
-              onClick={() => toggleDropdown("occasions")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-                selectedOccasions.length > 0
-                  ? "border-red-500 bg-red-50 text-red-700"
-                  : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-              }`}
-            >
-              <span className="text-sm font-medium">
-                {getSelectedOccasionLabel()}
-              </span>
-              <ChevronDownIcon isOpen={openDropdown === "occasions"} />
-            </button>
-
-            {/* Occasions Dropdown */}
-            {openDropdown === "occasions" && (
-              <div className="absolute top-full left-0 mt-2 w-auto min-w-96 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4">
-                <ToggleButtonGroup
-                  options={occasions}
-                  selectedValues={tempOccasions}
-                  onToggle={(value) => {
-                    // Update temporary state only
-                    setTempOccasions((prev) =>
-                      prev.includes(value)
-                        ? prev.filter((v) => v !== value)
-                        : [...prev, value]
-                    );
-                  }}
-                />
-                <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => setOpenDropdown(null)}
-                    className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Apply all changes
-                      tempOccasions.forEach((val) => {
-                        if (!selectedOccasions.includes(val)) {
-                          onOccasionChange(val);
-                        }
-                      });
-                      selectedOccasions.forEach((val) => {
-                        if (!tempOccasions.includes(val)) {
-                          onOccasionChange(val);
-                        }
-                      });
-                      setOpenDropdown(null);
-                    }}
-                    className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors cursor-pointer"
-                  >
-                    View Results
-                  </button>
-                </div>
-              </div>
-            )}
+            ...
           </div>
+          */}
 
-          {/* Recipients Filter Button */}
+          {/* Recipients Filter Button - Temporarily hidden */}
+          {/*
           <div className="relative" ref={recipientsDropdownRef}>
-            <button
-              onClick={() => toggleDropdown("recipients")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-                selectedRecipients.length > 0
-                  ? "border-red-500 bg-red-50 text-red-700"
-                  : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-              }`}
-            >
-              <span className="text-sm font-medium">
-                {getSelectedRecipientLabel()}
-              </span>
-              <ChevronDownIcon isOpen={openDropdown === "recipients"} />
-            </button>
-
-            {/* Recipients Dropdown */}
-            {openDropdown === "recipients" && (
-              <div className="absolute top-full left-0 mt-2 w-auto min-w-96 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4">
-                <ToggleButtonGroup
-                  options={recipients}
-                  selectedValues={tempRecipients}
-                  onToggle={(value) => {
-                    // Update temporary state only
-                    setTempRecipients((prev) =>
-                      prev.includes(value)
-                        ? prev.filter((v) => v !== value)
-                        : [...prev, value]
-                    );
-                  }}
-                />
-                <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => setOpenDropdown(null)}
-                    className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Apply all changes
-                      tempRecipients.forEach((val) => {
-                        if (!selectedRecipients.includes(val)) {
-                          onRecipientChange(val);
-                        }
-                      });
-                      selectedRecipients.forEach((val) => {
-                        if (!tempRecipients.includes(val)) {
-                          onRecipientChange(val);
-                        }
-                      });
-                      setOpenDropdown(null);
-                    }}
-                    className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors cursor-pointer"
-                  >
-                    View Results
-                  </button>
-                </div>
-              </div>
-            )}
+            ...
           </div>
+          */}
 
           {/* Price Range Filter Button */}
           <div className="relative" ref={priceModalRef}>

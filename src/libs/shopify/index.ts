@@ -17,10 +17,12 @@ import { isShopifyError } from "./queries/type-guard";
 import {
   Connection,
   ConnectionWithPageInfo,
+  Filter,
   Image,
   Menu,
   PageInfo,
   Product,
+  ProductFilter,
   ShopifyCollection,
   ShopifyCollectionOperation,
   ShopifyCollectionProductsOperation,
@@ -245,13 +247,19 @@ export async function getCollectionProductsWithPagination({
   sortKey,
   first = 24,
   after,
+  filters
 }: {
   collection: string;
   reverse?: boolean;
   sortKey?: string;
   first?: number;
   after?: string;
-}): Promise<{ products: Product[]; pageInfo: PageInfo }> {
+  filters?: ProductFilter[];
+}): Promise<{
+  products: Product[];
+  pageInfo: PageInfo;
+  filters?: Filter[];
+}> {
   try {
     const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
       query: getCollectionProductsQuery,
@@ -262,6 +270,7 @@ export async function getCollectionProductsWithPagination({
         sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
         first,
         after,
+        filters,
       },
     });
 
@@ -270,8 +279,12 @@ export async function getCollectionProductsWithPagination({
       return {
         products: [],
         pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        filters: [],
       };
     }
+
+    // ← LẤY FILTERS TRƯỚC
+    const availableFilters = res.body.data.collection.products.filters || [];
 
     const { nodes, pageInfo } = removeEdgesAndNodesWithCursor(
       res.body.data.collection.products
@@ -280,6 +293,7 @@ export async function getCollectionProductsWithPagination({
     return {
       products: reshapeProducts(nodes),
       pageInfo,
+      filters: availableFilters
     };
   } catch (error) {
     console.error(

@@ -4,7 +4,7 @@
 
 import { cache } from "react";
 import { getCollectionProductsWithPagination } from "@/libs/shopify";
-import { Product, PageInfo } from "@/libs/shopify/types";
+import { Product, PageInfo, ProductFilter, Filter } from "@/libs/shopify/types";
 
 export type SortOption =
   | "FEATURED"
@@ -26,6 +26,7 @@ export interface CollectionFilters {
 export interface CollectionProductsResult {
   products: Product[];
   pageInfo: PageInfo;
+  filters?: Filter[];
   totalCount: number;
 }
 
@@ -54,6 +55,78 @@ function getSortParams(sortBy: SortOption): {
     default:
       return { sortKey: "BEST_SELLING", reverse: false };
   }
+}
+
+// Helper: Convert CollectionFilters → Shopify ProductFilter[]
+export async function buildShopifyFilters(
+  filters?: CollectionFilters
+): Promise<ProductFilter[] | undefined> {
+  if (!filters) return undefined;
+
+  const shopifyFilters: ProductFilter[] = [];
+
+  // Price filter
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    shopifyFilters.push({
+      price: {
+        min: filters.minPrice,
+        max: filters.maxPrice,
+      },
+    });
+  }
+
+  // Tag filters - Occasions
+  /* 
+  if (filters.occasions && filters.occasions.length > 0) {
+    filters.occasions.forEach((occasion) => {
+      shopifyFilters.push({
+        tag: occasion,
+      });
+    });
+  }
+  */
+
+  // Tag filters - Recipients
+  /*
+  if (filters.recipients && filters.recipients.length > 0) {
+    filters.recipients.forEach((recipient) => {
+      shopifyFilters.push({
+        tag: recipient,
+      });
+    });
+  }
+  */
+
+  return shopifyFilters.length > 0 ? shopifyFilters : undefined;
+}
+
+// Helper: Estimate total count từ filters hoặc pageInfo
+export async function estimateTotalCount(result: {
+  products: Product[];
+  pageInfo: PageInfo;
+  filters?: Filter[];
+}): Promise<number> {
+  // Nếu không có next page, return exact count
+  if (!result.pageInfo.hasNextPage) {
+    return result.products.length;
+  }
+
+  // Nếu có filters, có thể sum từ filter counts
+  // (chỉ accurate nếu user chưa chọn filter nào)
+  if (result.filters && result.filters.length > 0) {
+    const firstFilter = result.filters[0];
+    if (firstFilter.values.length > 0) {
+      // Sum all counts từ first filter
+      const total = firstFilter.values.reduce(
+        (sum, value) => sum + value.count,
+        0
+      );
+      return total;
+    }
+  }
+
+  // Fallback: estimate based on current results
+  return result.products.length; // hoặc return "250+" string
 }
 
 /**
@@ -85,90 +158,80 @@ export const getFilteredCollectionProducts = cache(
     // Get sort parameters
     const { sortKey, reverse } = getSortParams(sortBy);
 
-    const hasPriceFilter =
-      filters?.minPrice !== undefined || filters?.maxPrice !== undefined;
-    const hasTagFilter =
-      (filters?.occasions && filters.occasions.length > 0) ||
-      (filters?.recipients && filters.recipients.length > 0);
+    const shopifyFilters = await buildShopifyFilters(filters);
 
-    // Fetch a larger batch to account for filtering
-    // Multiply by 10x to ensure we have enough products after filtering
-    const fetchSize = pageSize * 10;
-    const result = await getCollectionProductsWithPagination({
-      collection: collectionHandle,
-      sortKey,
-      reverse,
-      first: fetchSize,
-      after,
-    });
+    let allProducts: Product[] = [];
+    let currentAfter = after;
+    let lastResult: any = null;
+    let resultFirst: any = null;
+    let iterations = 0;
 
-    // Filter by tags and price (client-side filtering)
-    let filteredProducts = result.products;
+    // Calculate target range
+    const targetIndex = after ? 0 : (page - 1) * pageSize;
+    const totalToFetch = targetIndex + pageSize;
 
-    // Filter by tags
-    if (hasTagFilter) {
-      filteredProducts = filteredProducts.filter((product) => {
-        const productTags = product.tags || [];
+    // Sequential fetch to "seek" to the desired page
+    // Shopify Storefront API only allows 250 items per call
+    while (allProducts.length < totalToFetch && iterations < 5) {
+      iterations++;
+      const remaining = totalToFetch - allProducts.length;
+      const first = Math.min(remaining, 250);
 
-        // Check occasions
-        if (filters?.occasions && filters.occasions.length > 0) {
-          const hasOccasion = filters.occasions.some((tag) =>
-            productTags.some((pt) =>
-              pt.toLowerCase().includes(tag.toLowerCase())
-            )
-          );
-          if (!hasOccasion) return false;
-        }
-
-        // Check recipients
-        if (filters?.recipients && filters.recipients.length > 0) {
-          const hasRecipient = filters.recipients.some((tag) =>
-            productTags.some((pt) =>
-              pt.toLowerCase().includes(tag.toLowerCase())
-            )
-          );
-          if (!hasRecipient) return false;
-        }
-
-        return true;
+      const result = await getCollectionProductsWithPagination({
+        collection: collectionHandle,
+        sortKey,
+        reverse,
+        first,
+        after: currentAfter,
+        filters: shopifyFilters,
       });
+
+      if (!resultFirst) resultFirst = result; // Keep first result for filters/totalCount baseline
+      if (!lastResult) lastResult = result; 
+      
+      if (result.products.length === 0) break;
+
+      allProducts = [...allProducts, ...result.products];
+      currentAfter = result.pageInfo.endCursor;
+      
+      // Update lastResult to have latest pageInfo
+      lastResult = {
+        ...lastResult,
+        pageInfo: result.pageInfo
+      };
+
+      if (!result.pageInfo.hasNextPage) break;
     }
 
-    // Filter by price
-    if (hasPriceFilter) {
-      filteredProducts = filteredProducts.filter((product) => {
-        const minPrice = parseFloat(
-          product.priceRange?.minVariantPrice?.amount || "0"
-        );
-        const maxPrice = parseFloat(
-          product.priceRange?.maxVariantPrice?.amount || "0"
-        );
-
-        if (filters?.minPrice !== undefined && maxPrice < filters.minPrice) {
-          return false;
-        }
-
-        if (filters?.maxPrice !== undefined && minPrice > filters.maxPrice) {
-          return false;
-        }
-
-        return true;
-      });
+    if (!lastResult) {
+      return {
+        products: [],
+        pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        totalCount: 0,
+      };
     }
 
-    // Paginate the filtered results
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+    // Slice products for the current page
+    const slicedProducts = allProducts.slice(
+      targetIndex,
+      targetIndex + pageSize
+    );
+
+    // Update pageInfo
+    const hasNextPage =
+      lastResult.pageInfo.hasNextPage ||
+      allProducts.length > targetIndex + pageSize;
+    const hasPreviousPage = page > 1;
 
     return {
-      products: paginatedProducts,
+      products: slicedProducts,
       pageInfo: {
-        hasNextPage: filteredProducts.length > endIndex,
-        hasPreviousPage: page > 1,
-        endCursor: result.pageInfo.endCursor,
+        ...lastResult.pageInfo,
+        hasNextPage,
+        hasPreviousPage,
       },
-      totalCount: filteredProducts.length,
+      filters: resultFirst.filters,
+      totalCount: await estimateTotalCount(resultFirst),
     };
   }
 );
